@@ -46,6 +46,32 @@ test("renders sign in route", () => {
   expect(screen.getByRole("heading", { name: /sign in/i })).toBeTruthy();
 });
 
+test("sign in page links to sign up", () => {
+  render(
+    <MemoryRouter
+      initialEntries={["/signin"]}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <App />
+    </MemoryRouter>
+  );
+
+  expect(screen.getByRole("link", { name: /create workspace/i }).getAttribute("href")).toBe("/signup");
+});
+
+test("sign up page links to sign in", () => {
+  render(
+    <MemoryRouter
+      initialEntries={["/signup"]}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <App />
+    </MemoryRouter>
+  );
+
+  expect(screen.getByRole("link", { name: /sign in instead/i }).getAttribute("href")).toBe("/signin");
+});
+
 test("redirects tenant route to sign in when unauthenticated", () => {
   clearAuth();
   render(

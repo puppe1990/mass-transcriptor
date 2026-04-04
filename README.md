@@ -9,6 +9,8 @@ Multi-tenant audio transcription MVP with React, FastAPI, SQLite, local storage,
 3. Copy `backend/.env.example` to `backend/.env`.
 4. Start everything with `npm run dev` in the repository root.
 
+If you want a single shell entrypoint, run `./start.sh` from the repository root. It validates the local setup, creates `backend/.env` from the example when needed, and starts API, worker, and frontend together.
+
 ## Notes
 
 - Tenant scope lives in the URL path, such as `/t/acme/uploads`.
