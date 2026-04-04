@@ -32,6 +32,7 @@ test("renders sign up route", () => {
     </MemoryRouter>
   );
   expect(screen.getByRole("heading", { name: /create workspace/i })).toBeTruthy();
+  expect(screen.getByText(/turn raw audio into structured notes/i)).toBeTruthy();
 });
 
 test("renders sign in route", () => {
@@ -70,6 +71,39 @@ test("sign up page links to sign in", () => {
   );
 
   expect(screen.getByRole("link", { name: /sign in instead/i }).getAttribute("href")).toBe("/signin");
+});
+
+test("password field has visibility toggle on sign in", () => {
+  render(
+    <MemoryRouter
+      initialEntries={["/signin"]}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <App />
+    </MemoryRouter>
+  );
+
+  expect(screen.getByRole("button", { name: /show password/i })).toBeTruthy();
+});
+
+test("password visibility toggle switches input type", () => {
+  render(
+    <MemoryRouter
+      initialEntries={["/signin"]}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <App />
+    </MemoryRouter>
+  );
+
+  const passwordInput = screen.getByLabelText(/^password$/i) as HTMLInputElement;
+  expect(passwordInput.type).toBe("password");
+
+  fireEvent.click(screen.getByRole("button", { name: /show password/i }));
+  expect(passwordInput.type).toBe("text");
+
+  fireEvent.click(screen.getByRole("button", { name: /hide password/i }));
+  expect(passwordInput.type).toBe("password");
 });
 
 test("redirects tenant route to sign in when unauthenticated", () => {
@@ -118,7 +152,7 @@ test("signup stores auth and redirects to workspace", async () => {
   fireEvent.change(screen.getByLabelText(/workspace slug/i), { target: { value: "acme" } });
   fireEvent.change(screen.getByLabelText(/^name$/i), { target: { value: "Owner" } });
   fireEvent.change(screen.getByLabelText(/email/i), { target: { value: "owner@example.com" } });
-  fireEvent.change(screen.getByLabelText(/password/i), { target: { value: "secret123" } });
+  fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: "secret123" } });
   fireEvent.click(screen.getByRole("button", { name: /create account/i }));
 
   expect(await screen.findByRole("heading", { name: /upload audio/i })).toBeTruthy();
@@ -161,7 +195,7 @@ test("signin stores auth and redirects to tenant jobs", async () => {
   );
 
   fireEvent.change(screen.getByLabelText(/email/i), { target: { value: "owner@example.com" } });
-  fireEvent.change(screen.getByLabelText(/password/i), { target: { value: "secret123" } });
+  fireEvent.change(screen.getByLabelText(/^password$/i), { target: { value: "secret123" } });
   fireEvent.click(screen.getByRole("button", { name: /sign in/i }));
 
   expect(await screen.findByRole("heading", { name: /jobs/i })).toBeTruthy();

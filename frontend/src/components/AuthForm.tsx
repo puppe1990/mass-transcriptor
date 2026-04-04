@@ -6,6 +6,7 @@ import { signIn, signUp } from "../lib/api";
 
 export function AuthForm({ mode }: { mode: "signup" | "signin" }) {
   const [error, setError] = useState<string | null>(null);
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const navigate = useNavigate();
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -24,7 +25,7 @@ export function AuthForm({ mode }: { mode: "signup" | "signin" }) {
   }
 
   return (
-    <form className="upload-form" onSubmit={onSubmit}>
+    <form className="auth-form" onSubmit={onSubmit}>
       {mode === "signup" ? (
         <>
           <input aria-label="Workspace name" name="workspace_name" placeholder="Workspace name" />
@@ -33,9 +34,41 @@ export function AuthForm({ mode }: { mode: "signup" | "signin" }) {
         </>
       ) : null}
       <input aria-label="Email" name="email" type="email" placeholder="Email" />
-      <input aria-label="Password" name="password" type="password" placeholder="Password" />
-      <button type="submit">{mode === "signup" ? "Create Account" : "Sign In"}</button>
-      {error ? <p role="alert">{error}</p> : null}
+      <div className="auth-form__password-row">
+        <input
+          aria-label="Password"
+          name="password"
+          type={passwordVisible ? "text" : "password"}
+          placeholder="Password"
+          className="auth-form__password-input"
+        />
+        <button
+          type="button"
+          aria-label={passwordVisible ? "Hide password" : "Show password"}
+          onClick={() => setPasswordVisible((current) => !current)}
+          className="auth-form__eye"
+        >
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+            <circle cx="12" cy="12" r="3" />
+            {passwordVisible ? null : <path d="M4 4l16 16" />}
+          </svg>
+        </button>
+      </div>
+      <button className="auth-form__submit" type="submit">
+        {mode === "signup" ? "Create Account" : "Sign In"}
+      </button>
+      {error ? <p className="auth-form__error" role="alert">{error}</p> : null}
     </form>
   );
 }

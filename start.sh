@@ -34,5 +34,35 @@ if [[ ! -f "$BACKEND_DIR/.env" ]]; then
   echo "Created backend/.env from backend/.env.example"
 fi
 
-cd "$ROOT_DIR"
-exec npm run dev
+if [[ ! -x "$FRONTEND_DIR/node_modules/.bin/vite" ]]; then
+  echo "Installing frontend dependencies..."
+  (
+    cd "$FRONTEND_DIR"
+    npm install
+  )
+fi
+
+cleanup() {
+  jobs -p | xargs -r kill >/dev/null 2>&1 || true
+}
+
+trap cleanup EXIT INT TERM
+
+(
+  cd "$BACKEND_DIR"
+  . .venv/bin/activate
+  exec uvicorn app.main:app --reload
+) &
+
+(
+  cd "$BACKEND_DIR"
+  . .venv/bin/activate
+  exec python -m app.worker
+) &
+
+(
+  cd "$FRONTEND_DIR"
+  exec npm run dev
+) &
+
+wait
