@@ -16,6 +16,7 @@ export function ProtectedLayout() {
       <header className="job-actions" aria-label="Workspace navigation">
         <Link to={`/t/${tenantSlug}/uploads`}>Uploads</Link>
         <Link to={`/t/${tenantSlug}/jobs`}>Jobs</Link>
+        <Link to={`/t/${tenantSlug}/settings`}>Settings</Link>
         <button type="button" onClick={handleSignOut}>
           Sign out
         </button>

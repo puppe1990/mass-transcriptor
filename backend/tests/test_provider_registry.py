@@ -11,17 +11,12 @@ def test_get_provider_returns_whisper_provider():
     assert provider.provider_key == "whisper"
 
 
-@patch("app.services.providers.registry.Settings")
-def test_get_provider_returns_assemblyai_provider(settings_cls):
-    settings_cls.return_value.assemblyai_api_key = "test-key"
-    provider = get_provider("assemblyai")
+def test_get_provider_returns_assemblyai_provider():
+    provider = get_provider("assemblyai", api_key="test-key")
     assert provider.provider_key == "assemblyai"
 
 
-@patch("app.services.providers.registry.Settings")
-def test_get_provider_requires_assemblyai_key(settings_cls):
-    settings_cls.return_value.assemblyai_api_key = None
-
+def test_get_provider_requires_assemblyai_key():
     with pytest.raises(RuntimeError, match="ASSEMBLYAI_API_KEY"):
         get_provider("assemblyai")
 

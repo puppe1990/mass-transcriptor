@@ -43,6 +43,21 @@ class AuthResponse(BaseModel):
     tenant: TenantResponse | None = None
 
 
+class ProviderStateResponse(BaseModel):
+    enabled: bool
+    has_api_key: bool
+
+
+class ProviderSettingsResponse(BaseModel):
+    default_provider: str
+    providers: dict[str, ProviderStateResponse]
+
+
+class ProviderSettingsUpdateRequest(BaseModel):
+    default_provider: str
+    assemblyai_api_key: str | None = None
+
+
 class JobResponse(BaseModel):
     id: int
     status: str

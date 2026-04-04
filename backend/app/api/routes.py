@@ -16,6 +16,8 @@ from app.schemas import (
     JobResponse,
     JobSummaryResponse,
     MembershipResponse,
+    ProviderSettingsResponse,
+    ProviderSettingsUpdateRequest,
     SignInRequest,
     SignUpRequest,
     TenantResponse,
@@ -32,6 +34,7 @@ from app.services.jobs import (
     update_upload_audio_path,
 )
 from app.services.memberships import get_memberships_for_user, require_accessible_tenant
+from app.services.provider_settings import serialize_provider_settings, update_provider_settings
 from app.services.storage import write_audio_bytes
 
 router = APIRouter()
@@ -102,6 +105,29 @@ def me(current_user: User = Depends(get_current_user), session: Session = Depend
     memberships = get_memberships_for_user(session, current_user.id)
     token = create_access_token(user_id=current_user.id, email=current_user.email)
     return serialize_auth_response(current_user, memberships, token)
+
+
+@router.get("/t/{tenant_slug}/settings/providers", response_model=ProviderSettingsResponse)
+def get_provider_settings(
+    tenant_slug: str,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+) -> ProviderSettingsResponse:
+    tenant = require_accessible_tenant(session, current_user.id, tenant_slug)
+    return ProviderSettingsResponse(**serialize_provider_settings(session, tenant))
+
+
+@router.patch("/t/{tenant_slug}/settings/providers", response_model=ProviderSettingsResponse)
+def patch_provider_settings(
+    tenant_slug: str,
+    payload: ProviderSettingsUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+) -> ProviderSettingsResponse:
+    tenant = require_accessible_tenant(session, current_user.id, tenant_slug)
+    return ProviderSettingsResponse(
+        **update_provider_settings(session, tenant, payload.default_provider, payload.assemblyai_api_key)
+    )
 
 
 @router.post("/t/{tenant_slug}/uploads", status_code=status.HTTP_201_CREATED, response_model=JobResponse)

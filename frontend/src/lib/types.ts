@@ -46,3 +46,16 @@ export interface AuthPayload {
   memberships: MembershipSummary[];
   tenant: TenantSummary | null;
 }
+
+export interface ProviderState {
+  enabled: boolean;
+  has_api_key: boolean;
+}
+
+export interface ProviderSettings {
+  default_provider: string;
+  providers: {
+    whisper: ProviderState;
+    assemblyai: ProviderState;
+  };
+}

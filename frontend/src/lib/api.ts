@@ -1,5 +1,5 @@
 import { getAccessToken } from "./auth";
-import type { AuthPayload, JobDetail, JobResponse, JobSummary } from "./types";
+import type { AuthPayload, JobDetail, JobResponse, JobSummary, ProviderSettings } from "./types";
 
 async function parseJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
@@ -33,6 +33,23 @@ export async function getJobDetail(tenantSlug: string, jobId: string): Promise<J
 export async function retryJob(tenantSlug: string, jobId: string): Promise<JobResponse> {
   const response = await fetch(`/t/${tenantSlug}/jobs/${jobId}/retry`, { method: "POST", headers: buildHeaders() });
   return parseJson<JobResponse>(response);
+}
+
+export async function getProviderSettings(tenantSlug: string): Promise<ProviderSettings> {
+  const response = await fetch(`/t/${tenantSlug}/settings/providers`, { headers: buildHeaders() });
+  return parseJson<ProviderSettings>(response);
+}
+
+export async function updateProviderSettings(
+  tenantSlug: string,
+  payload: { default_provider: string; assemblyai_api_key?: string }
+): Promise<ProviderSettings> {
+  const response = await fetch(`/t/${tenantSlug}/settings/providers`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...buildHeaders() },
+    body: JSON.stringify(payload),
+  });
+  return parseJson<ProviderSettings>(response);
 }
 
 export async function signUp(payload: Record<string, string>): Promise<AuthPayload> {

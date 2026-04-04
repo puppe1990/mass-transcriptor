@@ -1,8 +1,9 @@
 import json
 
 from app.db import Base, SessionLocal, engine
-from app.models import Tenant, TenantMembership, TranscriptionJob, TranscriptionResult, Upload, User
+from app.models import Tenant, TenantMembership, TenantProviderSetting, TranscriptionJob, TranscriptionResult, Upload, User
 from app.services.markdown import render_transcript_markdown
+from app.services.secrets import encrypt_secret
 from app.services.providers.base import ProviderResult
 from app.worker import process_next_job
 
@@ -57,7 +58,7 @@ def test_process_next_job_marks_job_completed(monkeypatch, tmp_path):
                 metadata={"language": "en"},
             )
 
-    monkeypatch.setattr("app.worker.get_provider", lambda provider_key: DummyProvider())
+    monkeypatch.setattr("app.worker.get_provider", lambda provider_key, api_key=None: DummyProvider())
 
     assert process_next_job() is True
 
@@ -112,7 +113,7 @@ def test_process_next_job_marks_job_failed_when_provider_errors(monkeypatch, tmp
         def transcribe(self, file_path: str) -> ProviderResult:
             raise RuntimeError("provider misconfigured")
 
-    monkeypatch.setattr("app.worker.get_provider", lambda provider_key: BrokenProvider())
+    monkeypatch.setattr("app.worker.get_provider", lambda provider_key, api_key=None: BrokenProvider())
 
     assert process_next_job() is True
 
@@ -123,3 +124,70 @@ def test_process_next_job_marks_job_failed_when_provider_errors(monkeypatch, tmp
         assert stored_job.status == "failed"
         assert stored_job.error_message == "provider misconfigured"
         assert results == []
+
+
+def test_process_next_job_uses_decrypted_tenant_api_key_for_assemblyai(monkeypatch, tmp_path):
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+
+    audio_path = tmp_path / "sample.wav"
+    audio_path.write_bytes(b"fake-audio")
+
+    with SessionLocal() as session:
+        tenant = Tenant(slug="acme", name="Acme", default_provider="assemblyai")
+        user = User(name="Owner", email="owner@example.com", password_hash="hashed")
+        session.add_all([tenant, user])
+        session.commit()
+        session.refresh(tenant)
+        session.refresh(user)
+        session.add_all(
+            [
+                TenantMembership(tenant_id=tenant.id, user_id=user.id, role="owner"),
+                TenantProviderSetting(
+                    tenant_id=tenant.id,
+                    provider_key="assemblyai",
+                    enabled=1,
+                    config_json=json.dumps({"api_key": encrypt_secret("tenant-api-key")}),
+                ),
+            ]
+        )
+        session.commit()
+
+        upload = Upload(
+            tenant_id=tenant.id,
+            original_filename="sample.wav",
+            mime_type="audio/wav",
+            size_bytes=10,
+            audio_path=str(audio_path),
+        )
+        session.add(upload)
+        session.commit()
+        session.refresh(upload)
+
+        job = TranscriptionJob(
+            tenant_id=tenant.id,
+            upload_id=upload.id,
+            provider_key="assemblyai",
+            status="queued",
+        )
+        session.add(job)
+        session.commit()
+
+    captured: dict[str, str | None] = {"api_key": None}
+
+    class DummyProvider:
+        def transcribe(self, file_path: str) -> ProviderResult:
+            return ProviderResult(
+                transcript_text="AssemblyAI transcript",
+                provider_key="assemblyai",
+                metadata={"id": "tr_123"},
+            )
+
+    def fake_get_provider(provider_key: str, api_key: str | None = None) -> DummyProvider:
+        captured["api_key"] = api_key
+        return DummyProvider()
+
+    monkeypatch.setattr("app.worker.get_provider", fake_get_provider)
+
+    assert process_next_job() is True
+    assert captured["api_key"] == "tenant-api-key"

@@ -6,6 +6,7 @@ from app.config import Settings
 from app.db import SessionLocal
 from app.services.jobs import get_next_queued_job, mark_job_completed, mark_job_failed, mark_job_processing
 from app.services.markdown import render_transcript_markdown
+from app.services.provider_settings import resolve_assemblyai_api_key
 from app.services.providers.registry import get_provider
 from app.services.storage import write_markdown
 
@@ -20,7 +21,10 @@ def process_next_job() -> bool:
 
         try:
             mark_job_processing(session, job)
-            provider = get_provider(job.provider_key)
+            provider_api_key = None
+            if job.provider_key == "assemblyai":
+                provider_api_key = resolve_assemblyai_api_key(session, job.tenant_id)
+            provider = get_provider(job.provider_key, api_key=provider_api_key)
             result = provider.transcribe(job.upload.audio_path)
             markdown = render_transcript_markdown(
                 result.transcript_text,
