@@ -4,7 +4,12 @@ import time
 
 from app.config import Settings
 from app.db import SessionLocal
-from app.services.jobs import get_next_queued_job, mark_job_completed, mark_job_failed, mark_job_processing
+from app.services.jobs import (
+    get_next_queued_job,
+    mark_job_completed,
+    mark_job_failed,
+    mark_job_processing,
+)
 from app.services.markdown import render_transcript_markdown
 from app.services.provider_settings import resolve_assemblyai_api_key
 from app.services.providers.registry import get_provider

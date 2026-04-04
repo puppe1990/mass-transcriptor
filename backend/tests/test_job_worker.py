@@ -1,10 +1,18 @@
 import json
 
 from app.db import Base, SessionLocal, engine
-from app.models import Tenant, TenantMembership, TenantProviderSetting, TranscriptionJob, TranscriptionResult, Upload, User
+from app.models import (
+    Tenant,
+    TenantMembership,
+    TenantProviderSetting,
+    TranscriptionJob,
+    TranscriptionResult,
+    Upload,
+    User,
+)
 from app.services.markdown import render_transcript_markdown
-from app.services.secrets import encrypt_secret
 from app.services.providers.base import ProviderResult
+from app.services.secrets import encrypt_secret
 from app.worker import process_next_job
 
 
@@ -58,7 +66,9 @@ def test_process_next_job_marks_job_completed(monkeypatch, tmp_path):
                 metadata={"language": "en"},
             )
 
-    monkeypatch.setattr("app.worker.get_provider", lambda provider_key, api_key=None: DummyProvider())
+    monkeypatch.setattr(
+        "app.worker.get_provider", lambda provider_key, api_key=None: DummyProvider()
+    )
 
     assert process_next_job() is True
 
@@ -113,7 +123,9 @@ def test_process_next_job_marks_job_failed_when_provider_errors(monkeypatch, tmp
         def transcribe(self, file_path: str) -> ProviderResult:
             raise RuntimeError("provider misconfigured")
 
-    monkeypatch.setattr("app.worker.get_provider", lambda provider_key, api_key=None: BrokenProvider())
+    monkeypatch.setattr(
+        "app.worker.get_provider", lambda provider_key, api_key=None: BrokenProvider()
+    )
 
     assert process_next_job() is True
 

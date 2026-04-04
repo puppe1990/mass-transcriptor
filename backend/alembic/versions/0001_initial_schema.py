@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 revision = "0001_initial_schema"
 down_revision = None
@@ -16,7 +16,9 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column("slug", sa.String(length=100), nullable=False, unique=True),
         sa.Column("name", sa.String(length=200), nullable=False),
-        sa.Column("default_provider", sa.String(length=50), nullable=False, server_default="whisper"),
+        sa.Column(
+            "default_provider", sa.String(length=50), nullable=False, server_default="whisper"
+        ),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
     )
@@ -68,7 +70,9 @@ def upgrade() -> None:
         "transcription_jobs",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column("tenant_id", sa.Integer(), sa.ForeignKey("tenants.id"), nullable=False),
-        sa.Column("upload_id", sa.Integer(), sa.ForeignKey("uploads.id"), nullable=False, unique=True),
+        sa.Column(
+            "upload_id", sa.Integer(), sa.ForeignKey("uploads.id"), nullable=False, unique=True
+        ),
         sa.Column("provider_key", sa.String(length=50), nullable=False),
         sa.Column("status", sa.String(length=30), nullable=False, server_default="queued"),
         sa.Column("error_message", sa.String(length=500), nullable=True),
@@ -82,7 +86,13 @@ def upgrade() -> None:
     op.create_table(
         "transcription_results",
         sa.Column("id", sa.Integer(), primary_key=True),
-        sa.Column("job_id", sa.Integer(), sa.ForeignKey("transcription_jobs.id"), nullable=False, unique=True),
+        sa.Column(
+            "job_id",
+            sa.Integer(),
+            sa.ForeignKey("transcription_jobs.id"),
+            nullable=False,
+            unique=True,
+        ),
         sa.Column("tenant_id", sa.Integer(), sa.ForeignKey("tenants.id"), nullable=False),
         sa.Column("markdown_path", sa.String(length=500), nullable=False),
         sa.Column("transcript_text", sa.Text(), nullable=False),

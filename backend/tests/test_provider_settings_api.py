@@ -69,7 +69,11 @@ def test_patch_provider_settings_encrypts_api_key_and_changes_default_provider()
 
     with SessionLocal() as session:
         tenant = session.query(Tenant).filter(Tenant.slug == "acme").one()
-        setting = session.query(TenantProviderSetting).filter(TenantProviderSetting.tenant_id == tenant.id).one()
+        setting = (
+            session.query(TenantProviderSetting)
+            .filter(TenantProviderSetting.tenant_id == tenant.id)
+            .one()
+        )
 
         assert tenant.default_provider == "assemblyai"
         assert tenant.name == "Acme Audio Lab"

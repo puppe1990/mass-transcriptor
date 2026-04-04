@@ -16,7 +16,9 @@ class AssemblyAiProvider(TranscriptionProvider):
         try:
             transcript = aai.Transcriber().transcribe(file_path)
         except Exception as exc:
-            raise RuntimeError("AssemblyAI transcription failed. Check your API key and network access.") from exc
+            raise RuntimeError(
+                "AssemblyAI transcription failed. Check your API key and network access."
+            ) from exc
         if transcript.status == aai.TranscriptStatus.error:
             raise RuntimeError(transcript.error or "AssemblyAI transcription failed")
         return ProviderResult(

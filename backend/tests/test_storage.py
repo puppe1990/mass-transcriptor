@@ -1,4 +1,4 @@
-from app.models import Tenant, Upload, TranscriptionJob, TranscriptionResult
+from app.models import Tenant, TranscriptionJob, TranscriptionResult, Upload
 from app.services.storage import build_upload_dir
 
 

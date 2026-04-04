@@ -25,7 +25,8 @@ class WhisperProvider(TranscriptionProvider):
             result = model.transcribe(file_path)
         except Exception as exc:
             raise RuntimeError(
-                "Whisper transcription failed. Check that ffmpeg is installed and the model can be loaded."
+                "Whisper transcription failed. Check that ffmpeg is installed "
+                "and the model can be loaded."
             ) from exc
         return ProviderResult(
             transcript_text=(result.get("text") or "").strip(),

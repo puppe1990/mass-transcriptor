@@ -33,7 +33,9 @@ def get_current_user(
     session: Session = Depends(get_session),
 ) -> User:
     if credentials is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required"
+        )
 
     try:
         payload = jwt.decode(
@@ -43,7 +45,9 @@ def get_current_user(
         )
         user_id = int(payload["sub"])
     except Exception as exc:  # pragma: no cover
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token") from exc
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+        ) from exc
 
     user = session.get(User, user_id)
     if user is None:

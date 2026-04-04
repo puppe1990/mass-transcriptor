@@ -69,12 +69,20 @@ def sign_up(payload: SignUpRequest, session: Session = Depends(get_session)) -> 
     if existing_user is not None:
         raise HTTPException(status_code=409, detail="Email already in use")
 
-    existing_tenant = session.scalar(select(Tenant).where(Tenant.slug == payload.workspace_slug.lower()))
+    existing_tenant = session.scalar(
+        select(Tenant).where(Tenant.slug == payload.workspace_slug.lower())
+    )
     if existing_tenant is not None:
         raise HTTPException(status_code=409, detail="Workspace slug already in use")
 
-    tenant = Tenant(slug=payload.workspace_slug.lower(), name=payload.workspace_name, default_provider=settings.default_provider)
-    user = User(name=payload.name, email=payload.email, password_hash=hash_password(payload.password))
+    tenant = Tenant(
+        slug=payload.workspace_slug.lower(),
+        name=payload.workspace_name,
+        default_provider=settings.default_provider,
+    )
+    user = User(
+        name=payload.name, email=payload.email, password_hash=hash_password(payload.password)
+    )
     session.add(tenant)
     session.add(user)
     session.commit()
@@ -101,7 +109,9 @@ def sign_in(payload: SignInRequest, session: Session = Depends(get_session)) -> 
 
 
 @router.get("/auth/me", response_model=AuthResponse)
-def me(current_user: User = Depends(get_current_user), session: Session = Depends(get_session)) -> AuthResponse:
+def me(
+    current_user: User = Depends(get_current_user), session: Session = Depends(get_session)
+) -> AuthResponse:
     memberships = get_memberships_for_user(session, current_user.id)
     token = create_access_token(user_id=current_user.id, email=current_user.email)
     return serialize_auth_response(current_user, memberships, token)
@@ -136,7 +146,9 @@ def patch_provider_settings(
     )
 
 
-@router.post("/t/{tenant_slug}/uploads", status_code=status.HTTP_201_CREATED, response_model=JobResponse)
+@router.post(
+    "/t/{tenant_slug}/uploads", status_code=status.HTTP_201_CREATED, response_model=JobResponse
+)
 async def upload_audio(
     tenant_slug: str,
     file: UploadFile = File(...),
@@ -157,7 +169,9 @@ async def upload_audio(
         size_bytes=len(contents),
         audio_path="pending",
     )
-    audio_path = write_audio_bytes(tenant.slug, upload.id, Path(upload.original_filename).name, contents)
+    audio_path = write_audio_bytes(
+        tenant.slug, upload.id, Path(upload.original_filename).name, contents
+    )
     update_upload_audio_path(session, upload, audio_path)
     provider_key = tenant.default_provider or settings.default_provider
     job = create_transcription_job(session, tenant.id, upload.id, provider_key)

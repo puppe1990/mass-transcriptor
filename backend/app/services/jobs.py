@@ -42,7 +42,9 @@ def update_upload_audio_path(session: Session, upload: Upload, audio_path: str) 
     return upload
 
 
-def create_transcription_job(session: Session, tenant_id: int, upload_id: int, provider_key: str) -> TranscriptionJob:
+def create_transcription_job(
+    session: Session, tenant_id: int, upload_id: int, provider_key: str
+) -> TranscriptionJob:
     job = TranscriptionJob(
         tenant_id=tenant_id,
         upload_id=upload_id,

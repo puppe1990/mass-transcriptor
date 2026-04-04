@@ -10,7 +10,9 @@ from app.models import Tenant, TenantProviderSetting
 from app.services.secrets import decrypt_secret, encrypt_secret
 
 
-def _get_setting(session: Session, tenant_id: int, provider_key: str) -> TenantProviderSetting | None:
+def _get_setting(
+    session: Session, tenant_id: int, provider_key: str
+) -> TenantProviderSetting | None:
     stmt = select(TenantProviderSetting).where(
         TenantProviderSetting.tenant_id == tenant_id,
         TenantProviderSetting.provider_key == provider_key,
@@ -38,7 +40,9 @@ def _upsert_setting(
 
 def serialize_provider_settings(session: Session, tenant: Tenant) -> dict:
     assemblyai_setting = _get_setting(session, tenant.id, "assemblyai")
-    assemblyai_config = json.loads(assemblyai_setting.config_json or "{}") if assemblyai_setting else {}
+    assemblyai_config = (
+        json.loads(assemblyai_setting.config_json or "{}") if assemblyai_setting else {}
+    )
     return {
         "workspace_name": tenant.name,
         "default_provider": tenant.default_provider,
@@ -46,7 +50,9 @@ def serialize_provider_settings(session: Session, tenant: Tenant) -> dict:
             "whisper": {"enabled": True, "has_api_key": False},
             "assemblyai": {
                 "enabled": bool(assemblyai_setting.enabled) if assemblyai_setting else False,
-                "has_api_key": bool(assemblyai_config.get("api_key")) if assemblyai_setting else False,
+                "has_api_key": bool(assemblyai_config.get("api_key"))
+                if assemblyai_setting
+                else False,
             },
         },
     }
@@ -61,11 +67,15 @@ def update_provider_settings(
 ) -> dict:
     normalized_workspace_name = workspace_name.strip()
     if not normalized_workspace_name:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Workspace name is required")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Workspace name is required"
+        )
 
     normalized_provider = default_provider.strip().lower()
     if normalized_provider not in {"whisper", "assemblyai"}:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Unsupported provider")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Unsupported provider"
+        )
 
     if assemblyai_api_key is not None:
         raw_key = assemblyai_api_key.strip()
@@ -78,7 +88,10 @@ def update_provider_settings(
                 config={"api_key": encrypt_secret(raw_key)},
             )
 
-    if normalized_provider == "assemblyai" and resolve_assemblyai_api_key(session, tenant.id) is None:
+    if (
+        normalized_provider == "assemblyai"
+        and resolve_assemblyai_api_key(session, tenant.id) is None
+    ):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="AssemblyAI requires an API key for this workspace",
