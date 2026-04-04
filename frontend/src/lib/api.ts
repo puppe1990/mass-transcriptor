@@ -42,7 +42,7 @@ export async function getProviderSettings(tenantSlug: string): Promise<ProviderS
 
 export async function updateProviderSettings(
   tenantSlug: string,
-  payload: { default_provider: string; assemblyai_api_key?: string }
+  payload: { workspace_name: string; default_provider: string; assemblyai_api_key?: string }
 ): Promise<ProviderSettings> {
   const response = await fetch(`/t/${tenantSlug}/settings/providers`, {
     method: "PATCH",

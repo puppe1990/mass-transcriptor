@@ -49,11 +49,13 @@ class ProviderStateResponse(BaseModel):
 
 
 class ProviderSettingsResponse(BaseModel):
+    workspace_name: str
     default_provider: str
     providers: dict[str, ProviderStateResponse]
 
 
 class ProviderSettingsUpdateRequest(BaseModel):
+    workspace_name: str
     default_provider: str
     assemblyai_api_key: str | None = None
 

@@ -22,5 +22,6 @@ test("renders jobs heading on jobs route", () => {
     </MemoryRouter>
   );
   expect(screen.getByRole("heading", { name: /jobs/i })).toBeTruthy();
+  expect(screen.getByRole("navigation", { name: /workspace sidebar/i })).toBeTruthy();
   clearAuth();
 });

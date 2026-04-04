@@ -32,6 +32,7 @@ def test_get_provider_settings_returns_workspace_defaults():
 
     assert response.status_code == 200
     assert response.json() == {
+        "workspace_name": "Acme",
         "default_provider": "whisper",
         "providers": {
             "whisper": {"enabled": True, "has_api_key": False},
@@ -49,11 +50,16 @@ def test_patch_provider_settings_encrypts_api_key_and_changes_default_provider()
     response = client.patch(
         "/t/acme/settings/providers",
         headers=headers,
-        json={"default_provider": "assemblyai", "assemblyai_api_key": "super-secret-key"},
+        json={
+            "workspace_name": "Acme Audio Lab",
+            "default_provider": "assemblyai",
+            "assemblyai_api_key": "super-secret-key",
+        },
     )
 
     assert response.status_code == 200
     assert response.json() == {
+        "workspace_name": "Acme Audio Lab",
         "default_provider": "assemblyai",
         "providers": {
             "whisper": {"enabled": True, "has_api_key": False},
@@ -66,6 +72,7 @@ def test_patch_provider_settings_encrypts_api_key_and_changes_default_provider()
         setting = session.query(TenantProviderSetting).filter(TenantProviderSetting.tenant_id == tenant.id).one()
 
         assert tenant.default_provider == "assemblyai"
+        assert tenant.name == "Acme Audio Lab"
         assert setting.provider_key == "assemblyai"
         assert setting.enabled == 1
         assert "super-secret-key" not in (setting.config_json or "")
@@ -81,7 +88,11 @@ def test_upload_uses_updated_default_provider():
     client.patch(
         "/t/acme/settings/providers",
         headers=headers,
-        json={"default_provider": "assemblyai", "assemblyai_api_key": "super-secret-key"},
+        json={
+            "workspace_name": "Acme",
+            "default_provider": "assemblyai",
+            "assemblyai_api_key": "super-secret-key",
+        },
     )
 
     response = client.post(
@@ -103,7 +114,7 @@ def test_assemblyai_requires_workspace_key_for_workspace():
     response = client.patch(
         "/t/acme/settings/providers",
         headers=headers,
-        json={"default_provider": "assemblyai"},
+        json={"workspace_name": "Acme", "default_provider": "assemblyai"},
     )
 
     assert response.status_code == 422

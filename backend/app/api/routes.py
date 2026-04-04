@@ -126,7 +126,13 @@ def patch_provider_settings(
 ) -> ProviderSettingsResponse:
     tenant = require_accessible_tenant(session, current_user.id, tenant_slug)
     return ProviderSettingsResponse(
-        **update_provider_settings(session, tenant, payload.default_provider, payload.assemblyai_api_key)
+        **update_provider_settings(
+            session,
+            tenant,
+            payload.workspace_name,
+            payload.default_provider,
+            payload.assemblyai_api_key,
+        )
     )
 
 

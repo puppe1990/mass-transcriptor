@@ -40,6 +40,7 @@ def serialize_provider_settings(session: Session, tenant: Tenant) -> dict:
     assemblyai_setting = _get_setting(session, tenant.id, "assemblyai")
     assemblyai_config = json.loads(assemblyai_setting.config_json or "{}") if assemblyai_setting else {}
     return {
+        "workspace_name": tenant.name,
         "default_provider": tenant.default_provider,
         "providers": {
             "whisper": {"enabled": True, "has_api_key": False},
@@ -54,9 +55,14 @@ def serialize_provider_settings(session: Session, tenant: Tenant) -> dict:
 def update_provider_settings(
     session: Session,
     tenant: Tenant,
+    workspace_name: str,
     default_provider: str,
     assemblyai_api_key: str | None,
 ) -> dict:
+    normalized_workspace_name = workspace_name.strip()
+    if not normalized_workspace_name:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Workspace name is required")
+
     normalized_provider = default_provider.strip().lower()
     if normalized_provider not in {"whisper", "assemblyai"}:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Unsupported provider")
@@ -78,6 +84,7 @@ def update_provider_settings(
             detail="AssemblyAI requires an API key for this workspace",
         )
 
+    tenant.name = normalized_workspace_name
     tenant.default_provider = normalized_provider
     session.add(tenant)
     session.commit()

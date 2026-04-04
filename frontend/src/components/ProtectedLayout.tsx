@@ -12,16 +12,27 @@ export function ProtectedLayout() {
   }
 
   return (
-    <div className="page">
-      <header className="job-actions" aria-label="Workspace navigation">
-        <Link to={`/t/${tenantSlug}/uploads`}>Uploads</Link>
-        <Link to={`/t/${tenantSlug}/jobs`}>Jobs</Link>
-        <Link to={`/t/${tenantSlug}/settings`}>Settings</Link>
+    <div className="app-shell">
+      <nav className="app-sidebar" aria-label="Workspace sidebar">
+        <div className="app-sidebar__brand">
+          <p className="app-sidebar__eyebrow">Mass Transcriptor</p>
+          <strong>{tenantSlug}</strong>
+        </div>
+
+        <div className="app-sidebar__links">
+          <Link to={`/t/${tenantSlug}/uploads`}>Uploads</Link>
+          <Link to={`/t/${tenantSlug}/jobs`}>Jobs</Link>
+          <Link to={`/t/${tenantSlug}/settings`}>Settings</Link>
+        </div>
+
         <button type="button" onClick={handleSignOut}>
           Sign out
         </button>
-      </header>
-      <Outlet />
+      </nav>
+
+      <main className="app-content">
+        <Outlet />
+      </main>
     </div>
   );
 }
