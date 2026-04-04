@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently -n api,worker,web -c blue,green,cyan \"npm run dev:api\" \"npm run dev:worker\" \"npm run dev:web\"",
-    "dev:api": "cd backend && . .venv/bin/activate && uvicorn app.main:app --reload",
+    "dev:api": "cd backend && . .venv/bin/activate && python -m uvicorn app.main:app --reload",
     "dev:worker": "cd backend && . .venv/bin/activate && python -m app.worker",
     "dev:web": "npm --prefix frontend run dev",
     "test": "npm --prefix frontend test && zsh -lc 'cd backend && . .venv/bin/activate && pytest -q'",

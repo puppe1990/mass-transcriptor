@@ -51,7 +51,7 @@ trap cleanup EXIT INT TERM
 (
   cd "$BACKEND_DIR"
   . .venv/bin/activate
-  exec uvicorn app.main:app --reload
+  exec python -m uvicorn app.main:app --reload
 ) &
 
 (
