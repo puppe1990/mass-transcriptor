@@ -144,3 +144,48 @@ test("signin stores auth and redirects to tenant jobs", async () => {
   global.fetch = originalFetch;
   clearAuth();
 });
+
+test("shows logout action on protected routes", () => {
+  saveAuth({
+    access_token: "abc123",
+    token_type: "bearer",
+    user: { id: 1, name: "Owner", email: "owner@example.com" },
+    memberships: [{ tenant_id: 1, user_id: 1, role: "owner", tenant_slug: "acme" }],
+    tenant: { id: 1, slug: "acme", name: "Acme" }
+  });
+
+  render(
+    <MemoryRouter
+      initialEntries={["/t/acme/jobs"]}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <App />
+    </MemoryRouter>
+  );
+
+  expect(screen.getByRole("button", { name: /sign out/i })).toBeTruthy();
+});
+
+test("sign out clears auth and redirects to signin", async () => {
+  saveAuth({
+    access_token: "abc123",
+    token_type: "bearer",
+    user: { id: 1, name: "Owner", email: "owner@example.com" },
+    memberships: [{ tenant_id: 1, user_id: 1, role: "owner", tenant_slug: "acme" }],
+    tenant: { id: 1, slug: "acme", name: "Acme" }
+  });
+
+  render(
+    <MemoryRouter
+      initialEntries={["/t/acme/jobs"]}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <App />
+    </MemoryRouter>
+  );
+
+  fireEvent.click(screen.getByRole("button", { name: /sign out/i }));
+
+  expect(await screen.findByRole("heading", { name: /sign in/i })).toBeTruthy();
+  expect(getAccessToken()).toBe(null);
+});

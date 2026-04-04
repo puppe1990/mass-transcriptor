@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
+import { ProtectedLayout } from "./components/ProtectedLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import JobDetailPage from "./pages/JobDetailPage";
 import JobsPage from "./pages/JobsPage";
@@ -13,9 +14,18 @@ export default function App() {
       <Route path="/" element={<Navigate to="/signin" replace />} />
       <Route path="/signup" element={<SignUpPage />} />
       <Route path="/signin" element={<SignInPage />} />
-      <Route path="/t/:tenantSlug/uploads" element={<ProtectedRoute><UploadPage /></ProtectedRoute>} />
-      <Route path="/t/:tenantSlug/jobs" element={<ProtectedRoute><JobsPage /></ProtectedRoute>} />
-      <Route path="/t/:tenantSlug/jobs/:jobId" element={<ProtectedRoute><JobDetailPage /></ProtectedRoute>} />
+      <Route
+        path="/t/:tenantSlug"
+        element={
+          <ProtectedRoute>
+            <ProtectedLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="uploads" element={<UploadPage />} />
+        <Route path="jobs" element={<JobsPage />} />
+        <Route path="jobs/:jobId" element={<JobDetailPage />} />
+      </Route>
     </Routes>
   );
 }
