@@ -36,7 +36,7 @@ The app is ready to run real transcriptions through either local Whisper or Asse
 4. Choose `assemblyai` as the default provider and paste the workspace API key.
 5. Save the settings, upload an audio file, and let the worker process complete the job.
 
-If a provider is misconfigured, the job is marked as `failed` and the error is stored on the job detail endpoint instead of silently hanging.
+`AssemblyAI` no longer uses any global server-side fallback key. Each workspace must provide its own key in settings. If a provider is misconfigured, the job is marked as `failed` and the error is stored on the job detail endpoint instead of silently hanging.
 
 ## Authentication
 

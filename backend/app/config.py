@@ -12,7 +12,6 @@ class Settings(BaseSettings):
     storage_root: str = str(Path(__file__).resolve().parents[2] / "storage")
     polling_interval_seconds: float = 2.0
     default_provider: str = "whisper"
-    assemblyai_api_key: str | None = None
     whisper_model: str = "base"
     jwt_secret_key: str = "change-me-change-me-change-me-please"
     jwt_algorithm: str = "HS256"

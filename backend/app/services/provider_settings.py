@@ -6,7 +6,6 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.config import Settings
 from app.models import Tenant, TenantProviderSetting
 from app.services.secrets import decrypt_secret, encrypt_secret
 
@@ -93,6 +92,4 @@ def resolve_assemblyai_api_key(session: Session, tenant_id: int) -> str | None:
         encrypted_key = config.get("api_key")
         if encrypted_key:
             return decrypt_secret(encrypted_key)
-
-    settings = Settings()
-    return settings.assemblyai_api_key
+    return None

@@ -92,3 +92,19 @@ def test_upload_uses_updated_default_provider():
 
     assert response.status_code == 201
     assert response.json()["provider_key"] == "assemblyai"
+
+
+def test_assemblyai_requires_workspace_key_for_workspace():
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    client = TestClient(app)
+    headers = auth_header(client, "acme")
+
+    response = client.patch(
+        "/t/acme/settings/providers",
+        headers=headers,
+        json={"default_provider": "assemblyai"},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == "AssemblyAI requires an API key for this workspace"
