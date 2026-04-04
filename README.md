@@ -6,7 +6,8 @@ Multi-tenant audio transcription MVP with React, FastAPI, SQLite, local storage,
 
 1. Create a Python virtualenv in `backend/` and install the backend dependencies.
 2. Run `npm install` in the repository root and in `frontend/`.
-3. Start everything with `npm run dev` in the repository root.
+3. Copy `backend/.env.example` to `backend/.env`.
+4. Start everything with `npm run dev` in the repository root.
 
 ## Notes
 
@@ -14,6 +15,27 @@ Multi-tenant audio transcription MVP with React, FastAPI, SQLite, local storage,
 - Audio and generated Markdown files are stored under `storage/`.
 - The default provider is `whisper`; `assemblyai` is enabled when `ASSEMBLYAI_API_KEY` is set.
 - Vite proxies `/t/*` requests to `http://127.0.0.1:8000` in local development.
+
+## Real Transcription
+
+The app is ready to run real transcriptions through either local Whisper or AssemblyAI.
+
+### Whisper
+
+1. Install `ffmpeg` on the machine.
+2. In `backend/.env`, keep `DEFAULT_PROVIDER=whisper`.
+3. Optionally change `WHISPER_MODEL` to `tiny`, `base`, `small`, `medium`, or `large`.
+4. Start the stack with `npm run dev`.
+5. Sign up, upload an audio file, and keep the worker process running. The generated transcript will be written to `storage/<tenant>/uploads/<upload-id>/transcript/transcript.md`.
+
+### AssemblyAI
+
+1. Put your key in `backend/.env` as `ASSEMBLYAI_API_KEY=...`.
+2. Set `DEFAULT_PROVIDER=assemblyai`.
+3. Start the stack with `npm run dev`.
+4. Sign up, upload an audio file, and let the worker process complete the job.
+
+If a provider is misconfigured, the job is marked as `failed` and the error is stored on the job detail endpoint instead of silently hanging.
 
 ## Authentication
 

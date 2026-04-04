@@ -9,10 +9,14 @@ class AssemblyAiProvider(TranscriptionProvider):
     provider_key = "assemblyai"
 
     def __init__(self, api_key: str) -> None:
+        self.api_key = api_key
         aai.settings.api_key = api_key
 
     def transcribe(self, file_path: str) -> ProviderResult:
-        transcript = aai.Transcriber().transcribe(file_path)
+        try:
+            transcript = aai.Transcriber().transcribe(file_path)
+        except Exception as exc:
+            raise RuntimeError("AssemblyAI transcription failed. Check your API key and network access.") from exc
         if transcript.status == aai.TranscriptStatus.error:
             raise RuntimeError(transcript.error or "AssemblyAI transcription failed")
         return ProviderResult(
