@@ -9,6 +9,8 @@ from sqlalchemy.orm import Session
 from app.models import Tenant, TenantProviderSetting
 from app.services.secrets import decrypt_secret, encrypt_secret
 
+ALLOWED_WHISPER_LANGUAGES = {"auto", "pt", "en", "es"}
+
 
 def _get_setting(
     session: Session, tenant_id: int, provider_key: str
@@ -39,6 +41,7 @@ def _upsert_setting(
 
 
 def serialize_provider_settings(session: Session, tenant: Tenant) -> dict:
+    whisper_language = resolve_whisper_language(session, tenant.id)
     assemblyai_setting = _get_setting(session, tenant.id, "assemblyai")
     assemblyai_config = (
         json.loads(assemblyai_setting.config_json or "{}") if assemblyai_setting else {}
@@ -46,6 +49,7 @@ def serialize_provider_settings(session: Session, tenant: Tenant) -> dict:
     return {
         "workspace_name": tenant.name,
         "default_provider": tenant.default_provider,
+        "whisper_language": whisper_language,
         "providers": {
             "whisper": {"enabled": True, "has_api_key": False},
             "assemblyai": {
@@ -63,6 +67,7 @@ def update_provider_settings(
     tenant: Tenant,
     workspace_name: str,
     default_provider: str,
+    whisper_language: str,
     assemblyai_api_key: str | None,
 ) -> dict:
     normalized_workspace_name = workspace_name.strip()
@@ -76,6 +81,21 @@ def update_provider_settings(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Unsupported provider"
         )
+
+    normalized_whisper_language = whisper_language.strip().lower()
+    if normalized_whisper_language not in ALLOWED_WHISPER_LANGUAGES:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Unsupported Whisper language",
+        )
+
+    _upsert_setting(
+        session,
+        tenant.id,
+        "whisper",
+        enabled=True,
+        config={"language": normalized_whisper_language},
+    )
 
     if assemblyai_api_key is not None:
         raw_key = assemblyai_api_key.strip()
@@ -113,3 +133,15 @@ def resolve_assemblyai_api_key(session: Session, tenant_id: int) -> str | None:
         if encrypted_key:
             return decrypt_secret(encrypted_key)
     return None
+
+
+def resolve_whisper_language(session: Session, tenant_id: int) -> str:
+    setting = _get_setting(session, tenant_id, "whisper")
+    if setting is None:
+        return "auto"
+
+    config = json.loads(setting.config_json or "{}")
+    language = str(config.get("language") or "auto").lower()
+    if language not in ALLOWED_WHISPER_LANGUAGES:
+        return "auto"
+    return language

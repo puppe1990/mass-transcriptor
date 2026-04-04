@@ -1,9 +1,10 @@
+import i18n from "../i18n";
 import { getAccessToken } from "./auth";
 import type { AuthPayload, JobDetail, JobResponse, JobSummary, ProviderSettings } from "./types";
 
 async function parseJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}`);
+    throw new Error(i18n.t("common.requestFailed", { status: response.status }));
   }
   return response.json() as Promise<T>;
 }
@@ -42,7 +43,12 @@ export async function getProviderSettings(tenantSlug: string): Promise<ProviderS
 
 export async function updateProviderSettings(
   tenantSlug: string,
-  payload: { workspace_name: string; default_provider: string; assemblyai_api_key?: string }
+  payload: {
+    workspace_name: string;
+    default_provider: string;
+    whisper_language: "auto" | "pt" | "en" | "es";
+    assemblyai_api_key?: string;
+  }
 ): Promise<ProviderSettings> {
   const response = await fetch(`/t/${tenantSlug}/settings/providers`, {
     method: "PATCH",

@@ -55,6 +55,7 @@ export interface ProviderState {
 export interface ProviderSettings {
   workspace_name: string;
   default_provider: string;
+  whisper_language: "auto" | "pt" | "en" | "es";
   providers: {
     whisper: ProviderState;
     assemblyai: ProviderState;

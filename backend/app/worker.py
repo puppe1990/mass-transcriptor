@@ -11,7 +11,7 @@ from app.services.jobs import (
     mark_job_processing,
 )
 from app.services.markdown import render_transcript_markdown
-from app.services.provider_settings import resolve_assemblyai_api_key
+from app.services.provider_settings import resolve_assemblyai_api_key, resolve_whisper_language
 from app.services.providers.registry import get_provider
 from app.services.storage import write_markdown
 
@@ -27,9 +27,15 @@ def process_next_job() -> bool:
         try:
             mark_job_processing(session, job)
             provider_api_key = None
+            provider_language = None
             if job.provider_key == "assemblyai":
                 provider_api_key = resolve_assemblyai_api_key(session, job.tenant_id)
-            provider = get_provider(job.provider_key, api_key=provider_api_key)
+            if job.provider_key == "whisper":
+                whisper_language = resolve_whisper_language(session, job.tenant_id)
+                provider_language = None if whisper_language == "auto" else whisper_language
+            provider = get_provider(
+                job.provider_key, api_key=provider_api_key, language=provider_language
+            )
             result = provider.transcribe(job.upload.audio_path)
             markdown = render_transcript_markdown(
                 result.transcript_text,

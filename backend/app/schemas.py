@@ -51,12 +51,14 @@ class ProviderStateResponse(BaseModel):
 class ProviderSettingsResponse(BaseModel):
     workspace_name: str
     default_provider: str
+    whisper_language: str
     providers: dict[str, ProviderStateResponse]
 
 
 class ProviderSettingsUpdateRequest(BaseModel):
     workspace_name: str
     default_provider: str
+    whisper_language: str = "auto"
     assemblyai_api_key: str | None = None
 
 

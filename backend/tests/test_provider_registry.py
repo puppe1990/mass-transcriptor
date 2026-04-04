@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 
 from app.services.providers.registry import get_provider
-from app.services.providers.whisper_provider import WhisperProvider
+from app.services.providers.whisper_provider import WhisperProvider, load_whisper_model
 
 
 def test_get_provider_returns_whisper_provider():
@@ -23,8 +23,11 @@ def test_get_provider_requires_assemblyai_key():
 
 @patch("app.services.providers.whisper_provider.whisper.load_model")
 def test_whisper_provider_caches_loaded_model(load_model):
+    load_whisper_model.cache_clear()
+
     class DummyModel:
-        def transcribe(self, file_path: str) -> dict:
+        def transcribe(self, file_path: str, **kwargs) -> dict:
+            assert kwargs == {}
             return {"text": f"Transcript for {file_path}", "language": "en"}
 
     load_model.return_value = DummyModel()
@@ -36,3 +39,23 @@ def test_whisper_provider_caches_loaded_model(load_model):
     assert first.transcript_text == "Transcript for /tmp/first.wav"
     assert second.transcript_text == "Transcript for /tmp/second.wav"
     load_model.assert_called_once()
+    load_whisper_model.cache_clear()
+
+
+@patch("app.services.providers.whisper_provider.whisper.load_model")
+def test_whisper_provider_passes_configured_language(load_model):
+    load_whisper_model.cache_clear()
+
+    class DummyModel:
+        def transcribe(self, file_path: str, **kwargs) -> dict:
+            assert kwargs == {"language": "pt"}
+            return {"text": f"Transcript for {file_path}", "language": "pt"}
+
+    load_model.return_value = DummyModel()
+
+    provider = WhisperProvider(language="pt")
+    result = provider.transcribe("/tmp/file.wav")
+
+    assert result.transcript_text == "Transcript for /tmp/file.wav"
+    assert result.metadata == {"language": "pt"}
+    load_whisper_model.cache_clear()

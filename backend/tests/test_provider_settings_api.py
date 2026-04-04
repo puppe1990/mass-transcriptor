@@ -34,6 +34,7 @@ def test_get_provider_settings_returns_workspace_defaults():
     assert response.json() == {
         "workspace_name": "Acme",
         "default_provider": "whisper",
+        "whisper_language": "auto",
         "providers": {
             "whisper": {"enabled": True, "has_api_key": False},
             "assemblyai": {"enabled": False, "has_api_key": False},
@@ -53,6 +54,7 @@ def test_patch_provider_settings_encrypts_api_key_and_changes_default_provider()
         json={
             "workspace_name": "Acme Audio Lab",
             "default_provider": "assemblyai",
+            "whisper_language": "pt",
             "assemblyai_api_key": "super-secret-key",
         },
     )
@@ -61,6 +63,7 @@ def test_patch_provider_settings_encrypts_api_key_and_changes_default_provider()
     assert response.json() == {
         "workspace_name": "Acme Audio Lab",
         "default_provider": "assemblyai",
+        "whisper_language": "pt",
         "providers": {
             "whisper": {"enabled": True, "has_api_key": False},
             "assemblyai": {"enabled": True, "has_api_key": True},
@@ -71,7 +74,10 @@ def test_patch_provider_settings_encrypts_api_key_and_changes_default_provider()
         tenant = session.query(Tenant).filter(Tenant.slug == "acme").one()
         setting = (
             session.query(TenantProviderSetting)
-            .filter(TenantProviderSetting.tenant_id == tenant.id)
+            .filter(
+                TenantProviderSetting.tenant_id == tenant.id,
+                TenantProviderSetting.provider_key == "assemblyai",
+            )
             .one()
         )
 
@@ -95,6 +101,7 @@ def test_upload_uses_updated_default_provider():
         json={
             "workspace_name": "Acme",
             "default_provider": "assemblyai",
+            "whisper_language": "auto",
             "assemblyai_api_key": "super-secret-key",
         },
     )
@@ -123,3 +130,23 @@ def test_assemblyai_requires_workspace_key_for_workspace():
 
     assert response.status_code == 422
     assert response.json()["detail"] == "AssemblyAI requires an API key for this workspace"
+
+
+def test_patch_provider_settings_rejects_unsupported_whisper_language():
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    client = TestClient(app)
+    headers = auth_header(client, "acme")
+
+    response = client.patch(
+        "/t/acme/settings/providers",
+        headers=headers,
+        json={
+            "workspace_name": "Acme",
+            "default_provider": "whisper",
+            "whisper_language": "fr",
+        },
+    )
+
+    assert response.status_code == 422
+    assert response.json()["detail"] == "Unsupported Whisper language"

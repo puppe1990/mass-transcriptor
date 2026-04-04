@@ -30,6 +30,7 @@ test("renders provider settings page", async () => {
         JSON.stringify({
           workspace_name: "Acme",
           default_provider: "whisper",
+          whisper_language: "auto",
           providers: {
             whisper: { enabled: true, has_api_key: false },
             assemblyai: { enabled: false, has_api_key: false },
@@ -54,6 +55,7 @@ test("renders provider settings page", async () => {
   expect(screen.getByText(/choose which engine runs each transcript/i)).toBeTruthy();
   expect(screen.getByDisplayValue("Acme")).toBeTruthy();
   expect(screen.getByDisplayValue("whisper")).toBeTruthy();
+  expect(screen.getByDisplayValue("Auto detect")).toBeTruthy();
   expect(screen.getByText(/^missing$/i)).toBeTruthy();
 
   global.fetch = originalFetch;
@@ -69,6 +71,7 @@ test("saves assemblyai byok settings", async () => {
         JSON.stringify({
           workspace_name: "Acme",
           default_provider: "whisper",
+          whisper_language: "auto",
           providers: {
             whisper: { enabled: true, has_api_key: false },
             assemblyai: { enabled: false, has_api_key: false },
@@ -79,10 +82,12 @@ test("saves assemblyai byok settings", async () => {
     }
     if (url.includes("/t/acme/settings/providers") && init?.method === "PATCH") {
       expect(init.body).toContain('"workspace_name":"Acme Studio"');
+      expect(init.body).toContain('"whisper_language":"pt"');
       return new Response(
         JSON.stringify({
           workspace_name: "Acme Studio",
           default_provider: "assemblyai",
+          whisper_language: "pt",
           providers: {
             whisper: { enabled: true, has_api_key: false },
             assemblyai: { enabled: true, has_api_key: true },
@@ -106,11 +111,13 @@ test("saves assemblyai byok settings", async () => {
   await screen.findByRole("heading", { name: /provider settings/i });
   fireEvent.change(screen.getByLabelText(/workspace name/i), { target: { value: "Acme Studio" } });
   fireEvent.change(screen.getByLabelText(/default provider/i), { target: { value: "assemblyai" } });
+  fireEvent.change(screen.getByLabelText(/whisper default language/i), { target: { value: "pt" } });
   fireEvent.change(screen.getByLabelText(/assemblyai api key/i), { target: { value: "test-key" } });
   fireEvent.click(screen.getByRole("button", { name: /save settings/i }));
 
   expect(await screen.findByText(/assemblyai key saved/i)).toBeTruthy();
   expect(screen.getByDisplayValue("Acme Studio")).toBeTruthy();
+  expect(screen.getByDisplayValue("Portuguese")).toBeTruthy();
 
   global.fetch = originalFetch;
 });

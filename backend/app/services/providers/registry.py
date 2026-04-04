@@ -5,9 +5,11 @@ from app.services.providers.base import TranscriptionProvider
 from app.services.providers.whisper_provider import WhisperProvider
 
 
-def get_provider(provider_key: str, api_key: str | None = None) -> TranscriptionProvider:
+def get_provider(
+    provider_key: str, api_key: str | None = None, language: str | None = None
+) -> TranscriptionProvider:
     if provider_key == "whisper":
-        return WhisperProvider()
+        return WhisperProvider(language=language)
     if provider_key == "assemblyai":
         if not api_key:
             raise RuntimeError("ASSEMBLYAI_API_KEY is not configured")

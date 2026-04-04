@@ -16,13 +16,15 @@ def load_whisper_model(model_name: str):
 class WhisperProvider(TranscriptionProvider):
     provider_key = "whisper"
 
-    def __init__(self) -> None:
+    def __init__(self, language: str | None = None) -> None:
         self.settings = Settings()
+        self.language = language
 
     def transcribe(self, file_path: str) -> ProviderResult:
         try:
             model = load_whisper_model(self.settings.whisper_model)
-            result = model.transcribe(file_path)
+            kwargs = {"language": self.language} if self.language else {}
+            result = model.transcribe(file_path, **kwargs)
         except Exception as exc:
             raise RuntimeError(
                 "Whisper transcription failed. Check that ffmpeg is installed "

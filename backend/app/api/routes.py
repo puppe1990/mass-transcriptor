@@ -141,6 +141,7 @@ def patch_provider_settings(
             tenant,
             payload.workspace_name,
             payload.default_provider,
+            payload.whisper_language,
             payload.assemblyai_api_key,
         )
     )
