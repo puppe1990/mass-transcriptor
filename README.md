@@ -13,5 +13,10 @@ Multi-tenant audio transcription MVP with React, FastAPI, SQLite, local storage,
 - Tenant scope lives in the URL path, such as `/t/acme/uploads`.
 - Audio and generated Markdown files are stored under `storage/`.
 - The default provider is `whisper`; `assemblyai` is enabled when `ASSEMBLYAI_API_KEY` is set.
-- The API seeds a default tenant with slug `acme` on startup.
 - Vite proxies `/t/*` requests to `http://127.0.0.1:8000` in local development.
+
+## Authentication
+
+- Sign up at `/signup` to create a new workspace and its owner account.
+- Sign in at `/signin` with email and password.
+- Tenant routes under `/t/:tenantSlug/*` require a bearer token plus matching tenant membership.

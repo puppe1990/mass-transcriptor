@@ -23,6 +23,26 @@ def upgrade() -> None:
     op.create_index("ix_tenants_slug", "tenants", ["slug"], unique=True)
 
     op.create_table(
+        "users",
+        sa.Column("id", sa.Integer(), primary_key=True),
+        sa.Column("name", sa.String(length=200), nullable=False),
+        sa.Column("email", sa.String(length=255), nullable=False, unique=True),
+        sa.Column("password_hash", sa.String(length=255), nullable=False),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
+    )
+    op.create_index("ix_users_email", "users", ["email"], unique=True)
+
+    op.create_table(
+        "tenant_memberships",
+        sa.Column("id", sa.Integer(), primary_key=True),
+        sa.Column("tenant_id", sa.Integer(), sa.ForeignKey("tenants.id"), nullable=False),
+        sa.Column("user_id", sa.Integer(), sa.ForeignKey("users.id"), nullable=False),
+        sa.Column("role", sa.String(length=50), nullable=False, server_default="owner"),
+        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+    )
+
+    op.create_table(
         "tenant_provider_settings",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column("tenant_id", sa.Integer(), sa.ForeignKey("tenants.id"), nullable=False),
@@ -77,5 +97,8 @@ def downgrade() -> None:
     op.drop_table("transcription_jobs")
     op.drop_table("uploads")
     op.drop_table("tenant_provider_settings")
+    op.drop_table("tenant_memberships")
+    op.drop_index("ix_users_email", table_name="users")
+    op.drop_table("users")
     op.drop_index("ix_tenants_slug", table_name="tenants")
     op.drop_table("tenants")

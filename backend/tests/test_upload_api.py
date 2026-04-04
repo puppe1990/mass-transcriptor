@@ -7,16 +7,29 @@ from app.main import app
 from app.models import Tenant, TranscriptionJob, TranscriptionResult, Upload
 
 
+def auth_header(client: TestClient, slug: str = "acme") -> dict[str, str]:
+    response = client.post(
+        "/auth/signup",
+        json={
+            "workspace_name": slug.capitalize(),
+            "workspace_slug": slug,
+            "name": "Owner",
+            "email": f"{slug}@example.com",
+            "password": "secret123",
+        },
+    )
+    token = response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
 def test_post_upload_returns_queued_job():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
-    with SessionLocal() as session:
-        session.add(Tenant(slug="acme", name="Acme", default_provider="whisper"))
-        session.commit()
-
     client = TestClient(app)
+    headers = auth_header(client, "acme")
     response = client.post(
         "/t/acme/uploads",
+        headers=headers,
         files={"file": ("sample.wav", b"fake-audio", "audio/wav")},
     )
     assert response.status_code == 201
@@ -28,11 +41,11 @@ def test_post_upload_returns_queued_job():
 def test_retry_failed_job_requeues_it():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+    client = TestClient(app)
+    headers = auth_header(client, "acme")
+
     with SessionLocal() as session:
-        tenant = Tenant(slug="acme", name="Acme", default_provider="whisper")
-        session.add(tenant)
-        session.commit()
-        session.refresh(tenant)
+        tenant = session.query(Tenant).filter(Tenant.slug == "acme").one()
 
         upload = Upload(
             tenant_id=tenant.id,
@@ -56,8 +69,7 @@ def test_retry_failed_job_requeues_it():
         session.commit()
         session.refresh(job)
 
-    client = TestClient(app)
-    response = client.post(f"/t/acme/jobs/{job.id}/retry")
+    response = client.post(f"/t/acme/jobs/{job.id}/retry", headers=headers)
     assert response.status_code == 200
     payload = response.json()
     assert payload["status"] == "queued"
@@ -69,11 +81,11 @@ def test_download_markdown_returns_transcript_file(tmp_path):
     transcript_path = tmp_path / "transcript.md"
     transcript_path.write_text("# Transcript\n\nhello", encoding="utf-8")
 
+    client = TestClient(app)
+    headers = auth_header(client, "acme")
+
     with SessionLocal() as session:
-        tenant = Tenant(slug="acme", name="Acme", default_provider="whisper")
-        session.add(tenant)
-        session.commit()
-        session.refresh(tenant)
+        tenant = session.query(Tenant).filter(Tenant.slug == "acme").one()
 
         upload = Upload(
             tenant_id=tenant.id,
@@ -107,14 +119,13 @@ def test_download_markdown_returns_transcript_file(tmp_path):
         session.commit()
         job_id = job.id
 
-    client = TestClient(app)
-    response = client.get(f"/t/acme/jobs/{job_id}/download")
+    response = client.get(f"/t/acme/jobs/{job_id}/download", headers=headers)
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/markdown")
     assert "hello" in response.text
 
 
-def test_startup_seeds_default_tenant():
+def test_startup_does_not_seed_default_tenant():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 
@@ -123,5 +134,4 @@ def test_startup_seeds_default_tenant():
 
     with SessionLocal() as session:
         tenants = session.query(Tenant).all()
-        assert len(tenants) >= 1
-        assert any(tenant.slug == "acme" for tenant in tenants)
+        assert len(tenants) == 0

@@ -4,11 +4,24 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import Settings
 from app.db import get_session
-from app.schemas import JobDetailResponse, JobResponse, JobSummaryResponse
+from app.models import Tenant, TenantMembership, User
+from app.schemas import (
+    AuthResponse,
+    JobDetailResponse,
+    JobResponse,
+    JobSummaryResponse,
+    MembershipResponse,
+    SignInRequest,
+    SignUpRequest,
+    TenantResponse,
+    UserResponse,
+)
+from app.services.auth import create_access_token, get_current_user, hash_password, verify_password
 from app.services.jobs import (
     create_transcription_job,
     create_upload_record,
@@ -18,22 +31,87 @@ from app.services.jobs import (
     retry_job,
     update_upload_audio_path,
 )
+from app.services.memberships import get_memberships_for_user, require_accessible_tenant
 from app.services.storage import write_audio_bytes
-from app.services.tenancy import get_tenant_by_slug
 
 router = APIRouter()
 settings = Settings()
+
+
+def serialize_auth_response(
+    user: User,
+    memberships: list[TenantMembership],
+    token: str,
+    tenant: Tenant | None = None,
+) -> AuthResponse:
+    return AuthResponse(
+        access_token=token,
+        user=UserResponse(id=user.id, name=user.name, email=user.email),
+        memberships=[
+            MembershipResponse(
+                tenant_id=item.tenant_id,
+                user_id=item.user_id,
+                role=item.role,
+                tenant_slug=item.tenant.slug,
+            )
+            for item in memberships
+        ],
+        tenant=TenantResponse(id=tenant.id, slug=tenant.slug, name=tenant.name) if tenant else None,
+    )
+
+
+@router.post("/auth/signup", status_code=status.HTTP_201_CREATED, response_model=AuthResponse)
+def sign_up(payload: SignUpRequest, session: Session = Depends(get_session)) -> AuthResponse:
+    existing_user = session.scalar(select(User).where(User.email == payload.email))
+    if existing_user is not None:
+        raise HTTPException(status_code=409, detail="Email already in use")
+
+    existing_tenant = session.scalar(select(Tenant).where(Tenant.slug == payload.workspace_slug.lower()))
+    if existing_tenant is not None:
+        raise HTTPException(status_code=409, detail="Workspace slug already in use")
+
+    tenant = Tenant(slug=payload.workspace_slug.lower(), name=payload.workspace_name, default_provider=settings.default_provider)
+    user = User(name=payload.name, email=payload.email, password_hash=hash_password(payload.password))
+    session.add(tenant)
+    session.add(user)
+    session.commit()
+    session.refresh(tenant)
+    session.refresh(user)
+
+    membership = TenantMembership(tenant_id=tenant.id, user_id=user.id, role="owner")
+    session.add(membership)
+    session.commit()
+    memberships = get_memberships_for_user(session, user.id)
+    token = create_access_token(user_id=user.id, email=user.email)
+    return serialize_auth_response(user, memberships, token, tenant)
+
+
+@router.post("/auth/signin", response_model=AuthResponse)
+def sign_in(payload: SignInRequest, session: Session = Depends(get_session)) -> AuthResponse:
+    user = session.scalar(select(User).where(User.email == payload.email))
+    if user is None or not verify_password(payload.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    memberships = get_memberships_for_user(session, user.id)
+    token = create_access_token(user_id=user.id, email=user.email)
+    return serialize_auth_response(user, memberships, token)
+
+
+@router.get("/auth/me", response_model=AuthResponse)
+def me(current_user: User = Depends(get_current_user), session: Session = Depends(get_session)) -> AuthResponse:
+    memberships = get_memberships_for_user(session, current_user.id)
+    token = create_access_token(user_id=current_user.id, email=current_user.email)
+    return serialize_auth_response(current_user, memberships, token)
 
 
 @router.post("/t/{tenant_slug}/uploads", status_code=status.HTTP_201_CREATED, response_model=JobResponse)
 async def upload_audio(
     tenant_slug: str,
     file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ) -> JobResponse:
-    tenant = get_tenant_by_slug(session, tenant_slug)
-    if tenant is None:
-        raise HTTPException(status_code=404, detail="Tenant not found")
+    tenant = require_accessible_tenant(session, current_user.id, tenant_slug)
 
     contents = await file.read()
     if not contents:
@@ -55,10 +133,12 @@ async def upload_audio(
 
 
 @router.get("/t/{tenant_slug}/jobs", response_model=list[JobSummaryResponse])
-def list_jobs(tenant_slug: str, session: Session = Depends(get_session)) -> list[JobSummaryResponse]:
-    tenant = get_tenant_by_slug(session, tenant_slug)
-    if tenant is None:
-        raise HTTPException(status_code=404, detail="Tenant not found")
+def list_jobs(
+    tenant_slug: str,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+) -> list[JobSummaryResponse]:
+    tenant = require_accessible_tenant(session, current_user.id, tenant_slug)
     jobs = list_jobs_for_tenant(session, tenant.id)
     return [
         JobSummaryResponse(
@@ -74,10 +154,13 @@ def list_jobs(tenant_slug: str, session: Session = Depends(get_session)) -> list
 
 
 @router.get("/t/{tenant_slug}/jobs/{job_id}", response_model=JobDetailResponse)
-def get_job_detail(tenant_slug: str, job_id: int, session: Session = Depends(get_session)) -> JobDetailResponse:
-    tenant = get_tenant_by_slug(session, tenant_slug)
-    if tenant is None:
-        raise HTTPException(status_code=404, detail="Tenant not found")
+def get_job_detail(
+    tenant_slug: str,
+    job_id: int,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+) -> JobDetailResponse:
+    tenant = require_accessible_tenant(session, current_user.id, tenant_slug)
     job = get_job_for_tenant(session, tenant.id, job_id)
     if job is None:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -95,10 +178,13 @@ def get_job_detail(tenant_slug: str, job_id: int, session: Session = Depends(get
 
 
 @router.post("/t/{tenant_slug}/jobs/{job_id}/retry", response_model=JobResponse)
-def retry_failed_job(tenant_slug: str, job_id: int, session: Session = Depends(get_session)) -> JobResponse:
-    tenant = get_tenant_by_slug(session, tenant_slug)
-    if tenant is None:
-        raise HTTPException(status_code=404, detail="Tenant not found")
+def retry_failed_job(
+    tenant_slug: str,
+    job_id: int,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+) -> JobResponse:
+    tenant = require_accessible_tenant(session, current_user.id, tenant_slug)
     job = get_job_for_tenant(session, tenant.id, job_id)
     if job is None:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -109,10 +195,13 @@ def retry_failed_job(tenant_slug: str, job_id: int, session: Session = Depends(g
 
 
 @router.get("/t/{tenant_slug}/jobs/{job_id}/download")
-def download_markdown(tenant_slug: str, job_id: int, session: Session = Depends(get_session)) -> FileResponse:
-    tenant = get_tenant_by_slug(session, tenant_slug)
-    if tenant is None:
-        raise HTTPException(status_code=404, detail="Tenant not found")
+def download_markdown(
+    tenant_slug: str,
+    job_id: int,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+) -> FileResponse:
+    tenant = require_accessible_tenant(session, current_user.id, tenant_slug)
     job = get_job_for_tenant(session, tenant.id, job_id)
     if job is None:
         raise HTTPException(status_code=404, detail="Job not found")

@@ -12,5 +12,7 @@ class Settings(BaseSettings):
     default_provider: str = "whisper"
     assemblyai_api_key: str | None = None
     whisper_model: str = "base"
+    jwt_secret_key: str = "change-me-change-me-change-me-please"
+    jwt_algorithm: str = "HS256"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
