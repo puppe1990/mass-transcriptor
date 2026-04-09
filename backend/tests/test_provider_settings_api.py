@@ -9,7 +9,7 @@ from app.models import Tenant, TenantProviderSetting
 
 def auth_header(client: TestClient, slug: str = "acme") -> dict[str, str]:
     response = client.post(
-        "/auth/signup",
+        "/api/auth/signup",
         json={
             "workspace_name": slug.capitalize(),
             "workspace_slug": slug,
@@ -28,7 +28,7 @@ def test_get_provider_settings_returns_workspace_defaults():
     client = TestClient(app)
     headers = auth_header(client, "acme")
 
-    response = client.get("/t/acme/settings/providers", headers=headers)
+    response = client.get("/api/t/acme/settings/providers", headers=headers)
 
     assert response.status_code == 200
     assert response.json() == {
@@ -49,7 +49,7 @@ def test_patch_provider_settings_encrypts_api_key_and_changes_default_provider()
     headers = auth_header(client, "acme")
 
     response = client.patch(
-        "/t/acme/settings/providers",
+        "/api/t/acme/settings/providers",
         headers=headers,
         json={
             "workspace_name": "Acme Audio Lab",
@@ -96,7 +96,7 @@ def test_upload_uses_updated_default_provider():
     headers = auth_header(client, "acme")
 
     client.patch(
-        "/t/acme/settings/providers",
+        "/api/t/acme/settings/providers",
         headers=headers,
         json={
             "workspace_name": "Acme",
@@ -107,7 +107,7 @@ def test_upload_uses_updated_default_provider():
     )
 
     response = client.post(
-        "/t/acme/uploads",
+        "/api/t/acme/uploads",
         headers=headers,
         files={"file": ("sample.wav", b"fake-audio", "audio/wav")},
     )
@@ -123,7 +123,7 @@ def test_assemblyai_requires_workspace_key_for_workspace():
     headers = auth_header(client, "acme")
 
     response = client.patch(
-        "/t/acme/settings/providers",
+        "/api/t/acme/settings/providers",
         headers=headers,
         json={"workspace_name": "Acme", "default_provider": "assemblyai"},
     )
@@ -139,7 +139,7 @@ def test_patch_provider_settings_rejects_unsupported_whisper_language():
     headers = auth_header(client, "acme")
 
     response = client.patch(
-        "/t/acme/settings/providers",
+        "/api/t/acme/settings/providers",
         headers=headers,
         json={
             "workspace_name": "Acme",

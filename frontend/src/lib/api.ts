@@ -2,6 +2,8 @@ import i18n from "../i18n";
 import { getAccessToken } from "./auth";
 import type { AuthPayload, JobDetail, JobResponse, JobSummary, ProviderSettings } from "./types";
 
+const API_PREFIX = "/api";
+
 async function parseJson<T>(response: Response): Promise<T> {
   if (!response.ok) {
     throw new Error(i18n.t("common.requestFailed", { status: response.status }));
@@ -17,27 +19,38 @@ function buildHeaders(init?: HeadersInit): HeadersInit {
 export async function createUpload(tenantSlug: string, file: File): Promise<JobResponse> {
   const body = new FormData();
   body.append("file", file);
-  const response = await fetch(`/t/${tenantSlug}/uploads`, { method: "POST", body, headers: buildHeaders() });
+  const response = await fetch(`${API_PREFIX}/t/${tenantSlug}/uploads`, {
+    method: "POST",
+    body,
+    headers: buildHeaders(),
+  });
   return parseJson<JobResponse>(response);
 }
 
 export async function listJobs(tenantSlug: string): Promise<JobSummary[]> {
-  const response = await fetch(`/t/${tenantSlug}/jobs`, { headers: buildHeaders() });
+  const response = await fetch(`${API_PREFIX}/t/${tenantSlug}/jobs`, { headers: buildHeaders() });
   return parseJson<JobSummary[]>(response);
 }
 
 export async function getJobDetail(tenantSlug: string, jobId: string): Promise<JobDetail> {
-  const response = await fetch(`/t/${tenantSlug}/jobs/${jobId}`, { headers: buildHeaders() });
+  const response = await fetch(`${API_PREFIX}/t/${tenantSlug}/jobs/${jobId}`, {
+    headers: buildHeaders(),
+  });
   return parseJson<JobDetail>(response);
 }
 
 export async function retryJob(tenantSlug: string, jobId: string): Promise<JobResponse> {
-  const response = await fetch(`/t/${tenantSlug}/jobs/${jobId}/retry`, { method: "POST", headers: buildHeaders() });
+  const response = await fetch(`${API_PREFIX}/t/${tenantSlug}/jobs/${jobId}/retry`, {
+    method: "POST",
+    headers: buildHeaders(),
+  });
   return parseJson<JobResponse>(response);
 }
 
 export async function getProviderSettings(tenantSlug: string): Promise<ProviderSettings> {
-  const response = await fetch(`/t/${tenantSlug}/settings/providers`, { headers: buildHeaders() });
+  const response = await fetch(`${API_PREFIX}/t/${tenantSlug}/settings/providers`, {
+    headers: buildHeaders(),
+  });
   return parseJson<ProviderSettings>(response);
 }
 
@@ -50,7 +63,7 @@ export async function updateProviderSettings(
     assemblyai_api_key?: string;
   }
 ): Promise<ProviderSettings> {
-  const response = await fetch(`/t/${tenantSlug}/settings/providers`, {
+  const response = await fetch(`${API_PREFIX}/t/${tenantSlug}/settings/providers`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json", ...buildHeaders() },
     body: JSON.stringify(payload),
@@ -59,7 +72,7 @@ export async function updateProviderSettings(
 }
 
 export async function signUp(payload: Record<string, string>): Promise<AuthPayload> {
-  const response = await fetch("/auth/signup", {
+  const response = await fetch(`${API_PREFIX}/auth/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -68,7 +81,7 @@ export async function signUp(payload: Record<string, string>): Promise<AuthPaylo
 }
 
 export async function signIn(payload: Record<string, string>): Promise<AuthPayload> {
-  const response = await fetch("/auth/signin", {
+  const response = await fetch(`${API_PREFIX}/auth/signin`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),

@@ -39,7 +39,7 @@ def test_signup_creates_tenant_user_and_membership():
     reset_db()
     client = TestClient(app)
     response = client.post(
-        "/auth/signup",
+        "/api/auth/signup",
         json={
             "workspace_name": "Acme",
             "workspace_slug": "acme",
@@ -58,7 +58,7 @@ def test_signin_returns_token_for_valid_credentials():
     reset_db()
     client = TestClient(app)
     client.post(
-        "/auth/signup",
+        "/api/auth/signup",
         json={
             "workspace_name": "Acme",
             "workspace_slug": "acme",
@@ -68,7 +68,7 @@ def test_signin_returns_token_for_valid_credentials():
         },
     )
     response = client.post(
-        "/auth/signin",
+        "/api/auth/signin",
         json={"email": "owner@example.com", "password": "secret123"},
     )
     assert response.status_code == 200
@@ -79,7 +79,7 @@ def test_me_returns_current_user():
     reset_db()
     client = TestClient(app)
     signup_response = client.post(
-        "/auth/signup",
+        "/api/auth/signup",
         json={
             "workspace_name": "Acme",
             "workspace_slug": "acme",
@@ -89,7 +89,7 @@ def test_me_returns_current_user():
         },
     )
     token = signup_response.json()["access_token"]
-    response = client.get("/auth/me", headers={"Authorization": f"Bearer {token}"})
+    response = client.get("/api/auth/me", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
     assert response.json()["user"]["email"] == "owner@example.com"
 
@@ -101,7 +101,9 @@ def test_upload_rejects_unauthenticated_requests():
         session.commit()
 
     client = TestClient(app)
-    response = client.post("/t/acme/uploads", files={"file": ("sample.wav", b"data", "audio/wav")})
+    response = client.post(
+        "/api/t/acme/uploads", files={"file": ("sample.wav", b"data", "audio/wav")}
+    )
     assert response.status_code == 401
 
 
@@ -109,7 +111,7 @@ def test_upload_rejects_user_without_membership():
     reset_db()
     client = TestClient(app)
     client.post(
-        "/auth/signup",
+        "/api/auth/signup",
         json={
             "workspace_name": "Acme",
             "workspace_slug": "acme",
@@ -119,7 +121,7 @@ def test_upload_rejects_user_without_membership():
         },
     )
     outsider = client.post(
-        "/auth/signup",
+        "/api/auth/signup",
         json={
             "workspace_name": "Beta",
             "workspace_slug": "beta",
@@ -130,7 +132,7 @@ def test_upload_rejects_user_without_membership():
     )
     outsider_token = outsider.json()["access_token"]
     response = client.post(
-        "/t/acme/uploads",
+        "/api/t/acme/uploads",
         headers={"Authorization": f"Bearer {outsider_token}"},
         files={"file": ("sample.wav", b"data", "audio/wav")},
     )
@@ -141,7 +143,7 @@ def test_upload_accepts_user_with_membership():
     reset_db()
     client = TestClient(app)
     signup = client.post(
-        "/auth/signup",
+        "/api/auth/signup",
         json={
             "workspace_name": "Acme",
             "workspace_slug": "acme",
@@ -152,7 +154,7 @@ def test_upload_accepts_user_with_membership():
     )
     token = signup.json()["access_token"]
     response = client.post(
-        "/t/acme/uploads",
+        "/api/t/acme/uploads",
         headers={"Authorization": f"Bearer {token}"},
         files={"file": ("sample.wav", b"data", "audio/wav")},
     )

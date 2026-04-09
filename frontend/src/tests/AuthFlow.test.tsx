@@ -124,7 +124,7 @@ test("signup stores auth and redirects to workspace", async () => {
   const originalFetch = global.fetch;
   global.fetch = async (input) => {
     const url = String(input);
-    if (url.includes("/auth/signup")) {
+    if (url.includes("/api/auth/signup")) {
       return new Response(
         JSON.stringify({
           access_token: "signup-token",
@@ -167,7 +167,7 @@ test("signin stores auth and redirects to tenant jobs", async () => {
   const originalFetch = global.fetch;
   global.fetch = async (input) => {
     const url = String(input);
-    if (url.includes("/auth/signin")) {
+    if (url.includes("/api/auth/signin")) {
       return new Response(
         JSON.stringify({
           access_token: "signin-token",
@@ -179,7 +179,7 @@ test("signin stores auth and redirects to tenant jobs", async () => {
         { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
-    if (url.includes("/t/acme/jobs")) {
+    if (url.includes("/api/t/acme/jobs")) {
       return new Response(JSON.stringify([]), { status: 200, headers: { "Content-Type": "application/json" } });
     }
     return new Response(JSON.stringify({}), { status: 200, headers: { "Content-Type": "application/json" } });

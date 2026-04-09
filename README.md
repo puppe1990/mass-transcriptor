@@ -16,7 +16,7 @@ If you want a single shell entrypoint, run `./start.sh` from the repository root
 - Tenant scope lives in the URL path, such as `/t/acme/uploads`.
 - Audio and generated Markdown files are stored under `storage/`.
 - The default provider is `whisper`; `assemblyai` can be configured per workspace through the app settings.
-- Vite proxies `/t/*` requests to `http://127.0.0.1:8000` in local development.
+- Vite proxies `/api/*` requests to `http://127.0.0.1:8001` in local development.
 
 ## Real Transcription
 

@@ -7,7 +7,7 @@ from app.models import Tenant, TranscriptionJob, TranscriptionResult, Upload
 
 def auth_header(client: TestClient, slug: str = "acme") -> dict[str, str]:
     response = client.post(
-        "/auth/signup",
+        "/api/auth/signup",
         json={
             "workspace_name": slug.capitalize(),
             "workspace_slug": slug,
@@ -26,7 +26,7 @@ def test_post_upload_returns_queued_job():
     client = TestClient(app)
     headers = auth_header(client, "acme")
     response = client.post(
-        "/t/acme/uploads",
+        "/api/t/acme/uploads",
         headers=headers,
         files={"file": ("sample.wav", b"fake-audio", "audio/wav")},
     )
@@ -67,7 +67,7 @@ def test_retry_failed_job_requeues_it():
         session.commit()
         session.refresh(job)
 
-    response = client.post(f"/t/acme/jobs/{job.id}/retry", headers=headers)
+    response = client.post(f"/api/t/acme/jobs/{job.id}/retry", headers=headers)
     assert response.status_code == 200
     payload = response.json()
     assert payload["status"] == "queued"
@@ -117,7 +117,7 @@ def test_download_markdown_returns_transcript_file(tmp_path):
         session.commit()
         job_id = job.id
 
-    response = client.get(f"/t/acme/jobs/{job_id}/download", headers=headers)
+    response = client.get(f"/api/t/acme/jobs/{job_id}/download", headers=headers)
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("text/markdown")
     assert "hello" in response.text

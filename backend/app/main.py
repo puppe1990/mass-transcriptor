@@ -15,4 +15,4 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="Mass Transcriptor API", lifespan=lifespan)
-app.include_router(router)
+app.include_router(router, prefix="/api")

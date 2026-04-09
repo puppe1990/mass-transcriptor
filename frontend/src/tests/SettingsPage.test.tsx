@@ -25,7 +25,7 @@ test("renders provider settings page", async () => {
   const originalFetch = global.fetch;
   global.fetch = async (input) => {
     const url = String(input);
-    if (url.includes("/t/acme/settings/providers")) {
+    if (url.includes("/api/t/acme/settings/providers")) {
       return new Response(
         JSON.stringify({
           workspace_name: "Acme",
@@ -66,7 +66,7 @@ test("saves assemblyai byok settings", async () => {
   const originalFetch = global.fetch;
   global.fetch = async (input, init) => {
     const url = String(input);
-    if (url.includes("/t/acme/settings/providers") && (!init || init.method === undefined)) {
+    if (url.includes("/api/t/acme/settings/providers") && (!init || init.method === undefined)) {
       return new Response(
         JSON.stringify({
           workspace_name: "Acme",
@@ -80,7 +80,7 @@ test("saves assemblyai byok settings", async () => {
         { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
-    if (url.includes("/t/acme/settings/providers") && init?.method === "PATCH") {
+    if (url.includes("/api/t/acme/settings/providers") && init?.method === "PATCH") {
       expect(init.body).toContain('"workspace_name":"Acme Studio"');
       expect(init.body).toContain('"whisper_language":"pt"');
       return new Response(
