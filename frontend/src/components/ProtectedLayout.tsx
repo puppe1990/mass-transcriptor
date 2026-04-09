@@ -6,7 +6,7 @@ import { clearAuth } from "../lib/auth";
 
 export function ProtectedLayout() {
   const { t, i18n } = useTranslation();
-  const [language, setLanguage] = useState(i18n.resolvedLanguage ?? i18n.language);
+  const [language, setLanguage] = useState(() => i18n.resolvedLanguage || i18n.language || "en");
   const navigate = useNavigate();
   const { tenantSlug = "" } = useParams();
 
@@ -14,6 +14,9 @@ export function ProtectedLayout() {
     function syncLanguage(nextLanguage: string) {
       setLanguage(nextLanguage);
     }
+
+    // Sync on mount
+    syncLanguage(i18n.resolvedLanguage || i18n.language || "en");
 
     i18n.on("languageChanged", syncLanguage);
     return () => {
@@ -28,7 +31,6 @@ export function ProtectedLayout() {
 
   function handleLanguageChange(event: ChangeEvent<HTMLSelectElement>) {
     const nextLanguage = event.target.value;
-    setLanguage(nextLanguage);
     void i18n.changeLanguage(nextLanguage);
   }
 
