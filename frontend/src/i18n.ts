@@ -230,12 +230,17 @@ void i18n
     resources,
     fallbackLng: "en",
     supportedLngs: ["en", "pt-BR"],
-    nonExplicitSupportedLngs: true,
     load: "currentOnly",
     interpolation: { escapeValue: false },
     detection: {
       order: ["localStorage", "navigator", "htmlTag"],
       caches: ["localStorage"],
+      convertDetectedLanguage: (language) => {
+        const normalized = language.trim().toLowerCase();
+        if (normalized.startsWith("pt")) return "pt-BR";
+        if (normalized.startsWith("en")) return "en";
+        return normalized;
+      },
     },
   });
 

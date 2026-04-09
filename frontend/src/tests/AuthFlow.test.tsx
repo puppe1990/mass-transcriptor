@@ -1,13 +1,15 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, expect, test } from "vitest";
 
 import App from "../App";
 import { clearAuth, getAccessToken, saveAuth } from "../lib/auth";
+import i18n from "../i18n";
 
 afterEach(() => {
   cleanup();
   clearAuth();
+  void i18n.changeLanguage("en");
 });
 
 test("saveAuth persists the access token", () => {
@@ -248,4 +250,56 @@ test("sign out clears auth and redirects to signin", async () => {
 
   expect(await screen.findByRole("heading", { name: /sign in/i })).toBeTruthy();
   expect(getAccessToken()).toBe(null);
+});
+
+test("language selector switches the protected shell translations to portuguese", async () => {
+  await i18n.changeLanguage("en");
+  saveAuth({
+    access_token: "abc123",
+    token_type: "bearer",
+    user: { id: 1, name: "Owner", email: "owner@example.com" },
+    memberships: [{ tenant_id: 1, user_id: 1, role: "owner", tenant_slug: "acme" }],
+    tenant: { id: 1, slug: "acme", name: "Acme" }
+  });
+
+  const originalFetch = global.fetch;
+  global.fetch = async (input) => {
+    const url = String(input);
+    if (url.includes("/api/t/acme/settings/providers")) {
+      return new Response(
+        JSON.stringify({
+          workspace_name: "Acme",
+          default_provider: "whisper",
+          whisper_language: "auto",
+          providers: {
+            whisper: { enabled: true, has_api_key: false },
+            assemblyai: { enabled: false, has_api_key: false },
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    return new Response(JSON.stringify({}), { status: 200, headers: { "Content-Type": "application/json" } });
+  };
+
+  render(
+    <MemoryRouter
+      initialEntries={["/t/acme/settings"]}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <App />
+    </MemoryRouter>
+  );
+
+  expect(await screen.findByRole("heading", { name: /provider settings/i })).toBeTruthy();
+
+  const languageSelect = screen.getAllByRole("combobox")[0] as HTMLSelectElement;
+  fireEvent.change(languageSelect, { target: { value: "pt-BR" } });
+
+  await waitFor(() => {
+    expect(screen.getByRole("button", { name: /sair/i })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: /configuracoes do provider/i })).toBeTruthy();
+  });
+
+  global.fetch = originalFetch;
 });

@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import { ProtectedLayout } from "./components/ProtectedLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import "./i18n";
 import JobDetailPage from "./pages/JobDetailPage";
 import JobsPage from "./pages/JobsPage";
 import SettingsPage from "./pages/SettingsPage";
