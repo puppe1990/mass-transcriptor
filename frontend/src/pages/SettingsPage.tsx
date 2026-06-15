@@ -13,7 +13,6 @@ export default function SettingsPage() {
   const [defaultProvider, setDefaultProvider] = useState("whisper");
   const [whisperLanguage, setWhisperLanguage] =
     useState<ProviderSettings["whisper_language"]>("auto");
-  const [assemblyAiApiKey, setAssemblyAiApiKey] = useState("");
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,18 +44,12 @@ export default function SettingsPage() {
         workspace_name: workspaceName,
         default_provider: defaultProvider,
         whisper_language: whisperLanguage,
-        assemblyai_api_key: assemblyAiApiKey || undefined,
       });
       setSettings(payload);
       setWorkspaceName(payload.workspace_name);
       setDefaultProvider(payload.default_provider);
       setWhisperLanguage(payload.whisper_language);
-      setAssemblyAiApiKey("");
-      setStatusMessage(
-        payload.providers.assemblyai.has_api_key
-          ? t("settings.assemblyAiKeySaved")
-          : t("settings.settingsSaved")
-      );
+      setStatusMessage(t("settings.settingsSaved"));
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : t("settings.saveFailed"));
     }
@@ -74,6 +67,7 @@ export default function SettingsPage() {
           <strong>{settings?.workspace_name ?? tenantSlug}</strong>
           <p>{t("settings.slug", { tenantSlug })}</p>
           <p>{t("settings.whisperNote")}</p>
+          <p>{t("settings.assemblyAiNote")}</p>
         </div>
       </div>
 
@@ -126,22 +120,8 @@ export default function SettingsPage() {
 
             <section className="settings-form__section">
               <p className="settings-shell__label">{t("settings.credentials")}</p>
-              <label className="settings-form__field">
-                <span>{t("settings.assemblyAiApiKey")}</span>
-                <input
-                  aria-label={t("settings.assemblyAiApiKey")}
-                  type="password"
-                  value={assemblyAiApiKey}
-                  onChange={(event) => setAssemblyAiApiKey(event.target.value)}
-                  placeholder={
-                    settings.providers.assemblyai.has_api_key
-                      ? t("settings.configured")
-                      : t("settings.pasteApiKey")
-                  }
-                />
-              </label>
               <div className="settings-form__status-row">
-                <span className="settings-shell__label">{t("settings.status")}</span>
+                <span className="settings-shell__label">{t("settings.assemblyAiServerKey")}</span>
                 <span
                   className={`settings-status ${
                     settings.providers.assemblyai.has_api_key

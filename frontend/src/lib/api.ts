@@ -60,7 +60,6 @@ export async function updateProviderSettings(
     workspace_name: string;
     default_provider: string;
     whisper_language: "auto" | "pt" | "en" | "es";
-    assemblyai_api_key?: string;
   }
 ): Promise<ProviderSettings> {
   const response = await fetch(`${API_PREFIX}/t/${tenantSlug}/settings/providers`, {

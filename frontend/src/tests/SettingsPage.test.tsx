@@ -64,7 +64,7 @@ test("renders provider settings page", async () => {
   global.fetch = originalFetch;
 });
 
-test("saves assemblyai byok settings", async () => {
+test("saves provider settings without workspace api key", async () => {
   signInAsOwner();
   const originalFetch = global.fetch;
   global.fetch = async (input, init) => {
@@ -77,7 +77,7 @@ test("saves assemblyai byok settings", async () => {
           whisper_language: "auto",
           providers: {
             whisper: { enabled: true, has_api_key: false },
-            assemblyai: { enabled: false, has_api_key: false },
+            assemblyai: { enabled: true, has_api_key: true },
           },
         }),
         { status: 200, headers: { "Content-Type": "application/json" } }
@@ -86,6 +86,7 @@ test("saves assemblyai byok settings", async () => {
     if (url.includes("/api/t/acme/settings/providers") && init?.method === "PATCH") {
       expect(init.body).toContain('"workspace_name":"Acme Studio"');
       expect(init.body).toContain('"whisper_language":"pt"');
+      expect(init.body).not.toContain("assemblyai_api_key");
       return new Response(
         JSON.stringify({
           workspace_name: "Acme Studio",
@@ -118,10 +119,9 @@ test("saves assemblyai byok settings", async () => {
   fireEvent.change(screen.getByLabelText(/workspace name/i), { target: { value: "Acme Studio" } });
   fireEvent.change(screen.getByLabelText(/default provider/i), { target: { value: "assemblyai" } });
   fireEvent.change(screen.getByLabelText(/whisper default language/i), { target: { value: "pt" } });
-  fireEvent.change(screen.getByLabelText(/assemblyai api key/i), { target: { value: "test-key" } });
   fireEvent.click(screen.getByRole("button", { name: /save settings/i }));
 
-  expect(await screen.findByText(/assemblyai key saved/i)).toBeTruthy();
+  expect(await screen.findByText(/settings saved/i)).toBeTruthy();
   expect(screen.getByDisplayValue("Acme Studio")).toBeTruthy();
   expect(screen.getByDisplayValue("Portuguese")).toBeTruthy();
 
