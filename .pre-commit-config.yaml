@@ -24,17 +24,15 @@ repos:
 
       - id: frontend-eslint
         name: frontend eslint
-        entry: bash -c 'cd frontend && npm run lint'
+        entry: bash -c 'npx --prefix frontend eslint --fix "$@"' --
         language: system
         files: ^frontend/src/.*\.(ts|tsx)$
-        pass_filenames: false
 
       - id: frontend-prettier
         name: frontend prettier
-        entry: bash -c 'cd frontend && npm run format'
+        entry: bash -c 'npx --prefix frontend prettier --write "$@"' --
         language: system
         files: ^frontend/.*\.(ts|tsx|css|html|json)$
-        pass_filenames: false
 
       - id: frontend-vitest
         name: frontend vitest
