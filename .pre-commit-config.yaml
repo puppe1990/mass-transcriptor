@@ -17,7 +17,7 @@ repos:
 
       - id: backend-pytest
         name: backend pytest
-        entry: bash -c 'cd backend && (test -x .venv/bin/pytest && .venv/bin/pytest -q || python -m pytest -q)'
+        entry: bash -c 'rm -rf backend/tests/.runtime && mkdir -p backend/tests/.runtime && cd backend && (test -x .venv/bin/pytest && .venv/bin/pytest -q || python -m pytest -q)'
         language: system
         files: ^backend/
         pass_filenames: false
