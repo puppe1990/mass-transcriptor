@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./app.db"
     storage_root: str = str(Path(__file__).resolve().parents[2] / "storage")
     polling_interval_seconds: float = 2.0
-    default_provider: str = "whisper"
+    default_provider: str = "assemblyai"
     whisper_model: str = "base"
     jwt_secret_key: str = "change-me-change-me-change-me-please"
     jwt_algorithm: str = "HS256"

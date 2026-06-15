@@ -32,7 +32,7 @@ def test_get_provider_settings_returns_workspace_defaults(monkeypatch):
     assert response.status_code == 200
     assert response.json() == {
         "workspace_name": "Acme",
-        "default_provider": "whisper",
+        "default_provider": "assemblyai",
         "whisper_language": "auto",
         "providers": {
             "whisper": {"enabled": True, "has_api_key": False},

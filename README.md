@@ -15,7 +15,7 @@ If you want a single shell entrypoint, run `./start.sh` from the repository root
 
 - Tenant scope lives in the URL path, such as `/t/acme/uploads`.
 - Audio and generated Markdown files are stored under `storage/`.
-- The default provider is `whisper`; `assemblyai` can be selected per workspace when the server has `ASSEMBLYAI_API_KEY` configured.
+- The default provider is `assemblyai`; `whisper` remains available as an alternative.
 - Vite proxies `/api/*` requests to `http://127.0.0.1:8001` in local development.
 
 ## Real Transcription
@@ -25,7 +25,7 @@ The app is ready to run real transcriptions through either local Whisper or Asse
 ### Whisper
 
 1. Install `ffmpeg` on the machine.
-2. In `backend/.env`, keep `DEFAULT_PROVIDER=whisper`.
+2. In `backend/.env`, keep `DEFAULT_PROVIDER=assemblyai` or switch to `whisper` if you prefer local transcription.
 3. Optionally change `WHISPER_MODEL` to `tiny`, `base`, `small`, `medium`, or `large`.
 4. Start the stack with `npm run dev`.
 5. Sign up, upload an audio file, and keep the worker process running. The generated transcript will be written to `storage/<tenant>/uploads/<upload-id>/transcript/transcript.md`.

@@ -33,7 +33,7 @@ def test_post_upload_returns_queued_job():
     assert response.status_code == 201
     payload = response.json()
     assert payload["status"] == "queued"
-    assert payload["provider_key"] == "whisper"
+    assert payload["provider_key"] == "assemblyai"
 
 
 def test_retry_failed_job_requeues_it():

@@ -10,7 +10,7 @@ export default function SettingsPage() {
   const { tenantSlug = "" } = useParams();
   const [settings, setSettings] = useState<ProviderSettings | null>(null);
   const [workspaceName, setWorkspaceName] = useState("");
-  const [defaultProvider, setDefaultProvider] = useState("whisper");
+  const [defaultProvider, setDefaultProvider] = useState("assemblyai");
   const [whisperLanguage, setWhisperLanguage] =
     useState<ProviderSettings["whisper_language"]>("auto");
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
