@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export function TranscriptPreview({ text }: { text?: string | null }) {
+  const { t } = useTranslation();
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
 
   if (!text) {
-    return <p>No transcript available yet.</p>;
+    return <p className="transcript-preview__empty">{t("transcript.empty")}</p>;
   }
 
   async function handleCopy() {
@@ -25,7 +27,7 @@ export function TranscriptPreview({ text }: { text?: string | null }) {
   return (
     <section className="transcript-preview">
       <div className="transcript-preview__header">
-        <h2>Transcript</h2>
+        <h2>{t("transcript.title")}</h2>
         <button type="button" className="transcript-preview__copy" onClick={handleCopy}>
           {copyState === "copied" ? "Copied" : "Copy Text"}
         </button>
