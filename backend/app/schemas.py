@@ -59,7 +59,6 @@ class ProviderSettingsUpdateRequest(BaseModel):
     workspace_name: str
     default_provider: str
     whisper_language: str = "auto"
-    assemblyai_api_key: str | None = None
 
 
 class JobResponse(BaseModel):

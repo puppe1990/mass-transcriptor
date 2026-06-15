@@ -12,7 +12,6 @@ from app.models import (
 )
 from app.services.markdown import render_transcript_markdown
 from app.services.providers.base import ProviderResult
-from app.services.secrets import encrypt_secret
 from app.worker import process_next_job
 
 
@@ -140,7 +139,8 @@ def test_process_next_job_marks_job_failed_when_provider_errors(monkeypatch, tmp
         assert results == []
 
 
-def test_process_next_job_uses_decrypted_tenant_api_key_for_assemblyai(monkeypatch, tmp_path):
+def test_process_next_job_uses_server_assemblyai_env_key(monkeypatch, tmp_path):
+    monkeypatch.setenv("ASSEMBLYAI_API_KEY", "server-api-key")
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 
@@ -154,16 +154,8 @@ def test_process_next_job_uses_decrypted_tenant_api_key_for_assemblyai(monkeypat
         session.commit()
         session.refresh(tenant)
         session.refresh(user)
-        session.add_all(
-            [
-                TenantMembership(tenant_id=tenant.id, user_id=user.id, role="owner"),
-                TenantProviderSetting(
-                    tenant_id=tenant.id,
-                    provider_key="assemblyai",
-                    enabled=1,
-                    config_json=json.dumps({"api_key": encrypt_secret("tenant-api-key")}),
-                ),
-            ]
+        session.add(
+            TenantMembership(tenant_id=tenant.id, user_id=user.id, role="owner"),
         )
         session.commit()
 
@@ -206,7 +198,7 @@ def test_process_next_job_uses_decrypted_tenant_api_key_for_assemblyai(monkeypat
     monkeypatch.setattr("app.worker.get_provider", fake_get_provider)
 
     assert process_next_job() is True
-    assert captured["api_key"] == "tenant-api-key"
+    assert captured["api_key"] == "server-api-key"
 
 
 def test_process_next_job_passes_whisper_language(monkeypatch, tmp_path):

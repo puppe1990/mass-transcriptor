@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     jwt_secret_key: str = "change-me-change-me-change-me-please"
     jwt_algorithm: str = "HS256"
     encryption_secret_key: str | None = None
+    assemblyai_api_key: str | None = None
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
