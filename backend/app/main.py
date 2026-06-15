@@ -5,12 +5,13 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.api.routes import router
-from app.db import Base, engine
+from app.db import engine
+from app.migrations import upgrade_database
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    Base.metadata.create_all(bind=engine)
+    upgrade_database(engine)
     yield
 
 
