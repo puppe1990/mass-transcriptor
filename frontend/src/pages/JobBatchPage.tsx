@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 
 import { JobStatusBadge } from "../components/JobStatusBadge";
 import { TranscriptPreview } from "../components/TranscriptPreview";
-import { getJobBatch, retryJob } from "../lib/api";
+import { getJobBatch, retryJob, downloadJobMarkdown } from "../lib/api";
 import type { JobBatchDetail, JobDetail } from "../lib/types";
 
 export default function JobBatchPage() {
@@ -13,6 +13,8 @@ export default function JobBatchPage() {
   const [batch, setBatch] = useState<JobBatchDetail | null>(null);
   const [activeJobId, setActiveJobId] = useState<number | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   useEffect(() => {
     let timer: number | undefined;
@@ -53,6 +55,19 @@ export default function JobBatchPage() {
       setBatch(next);
     } finally {
       setIsRetrying(false);
+    }
+  }
+
+  async function handleDownload(job: JobDetail) {
+    if (!job.markdown_path) return;
+    setDownloadError(null);
+    setIsDownloading(true);
+    try {
+      await downloadJobMarkdown(tenantSlug, String(job.id), job.original_filename);
+    } catch (error) {
+      setDownloadError(error instanceof Error ? error.message : t("jobs.downloadFailed"));
+    } finally {
+      setIsDownloading(false);
     }
   }
 
@@ -118,11 +133,21 @@ export default function JobBatchPage() {
                 </button>
               ) : null}
               {activeJob.markdown_path ? (
-                <a href={`/t/${tenantSlug}/jobs/${activeJob.id}/download`}>
-                  {t("jobs.downloadMarkdown")}
-                </a>
+                <button
+                  type="button"
+                  onClick={() => handleDownload(activeJob)}
+                  disabled={isDownloading}
+                >
+                  {isDownloading ? t("jobs.downloadingMarkdown") : t("jobs.downloadMarkdown")}
+                </button>
               ) : null}
             </div>
+
+            {downloadError ? (
+              <p className="page-alert" role="alert">
+                {downloadError}
+              </p>
+            ) : null}
 
             {activeJob.error_message ? (
               <p className="page-alert" role="alert">

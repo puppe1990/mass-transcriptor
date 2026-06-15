@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 
 import { JobStatusBadge } from "../components/JobStatusBadge";
 import { TranscriptPreview } from "../components/TranscriptPreview";
-import { getJobDetail, retryJob } from "../lib/api";
+import { getJobDetail, retryJob, downloadJobMarkdown } from "../lib/api";
 import type { JobDetail } from "../lib/types";
 
 export default function JobDetailPage() {
@@ -12,6 +12,8 @@ export default function JobDetailPage() {
   const { tenantSlug = "", jobId = "" } = useParams();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   useEffect(() => {
     let timer: number | undefined;
@@ -49,6 +51,19 @@ export default function JobDetailPage() {
       setJob(next);
     } finally {
       setIsRetrying(false);
+    }
+  }
+
+  async function handleDownload() {
+    if (!job?.markdown_path) return;
+    setDownloadError(null);
+    setIsDownloading(true);
+    try {
+      await downloadJobMarkdown(tenantSlug, jobId, job.original_filename);
+    } catch (error) {
+      setDownloadError(error instanceof Error ? error.message : t("jobs.downloadFailed"));
+    } finally {
+      setIsDownloading(false);
     }
   }
 
@@ -106,9 +121,17 @@ export default function JobDetailPage() {
             </button>
           ) : null}
           {job.markdown_path ? (
-            <a href={`/t/${tenantSlug}/jobs/${jobId}/download`}>{t("jobs.downloadMarkdown")}</a>
+            <button type="button" onClick={handleDownload} disabled={isDownloading}>
+              {isDownloading ? t("jobs.downloadingMarkdown") : t("jobs.downloadMarkdown")}
+            </button>
           ) : null}
         </div>
+
+        {downloadError ? (
+          <p className="page-alert" role="alert">
+            {downloadError}
+          </p>
+        ) : null}
 
         {job.error_message ? (
           <p className="page-alert" role="alert">

@@ -67,6 +67,34 @@ export async function retryJob(tenantSlug: string, jobId: string): Promise<JobRe
   return parseJson<JobResponse>(response);
 }
 
+export function jobMarkdownFilename(originalFilename: string): string {
+  const stem = originalFilename.replace(/\.[^.]+$/, "");
+  return `${stem}.md`;
+}
+
+export async function downloadJobMarkdown(
+  tenantSlug: string,
+  jobId: string,
+  originalFilename: string
+): Promise<void> {
+  const response = await fetch(`${API_PREFIX}/t/${tenantSlug}/jobs/${jobId}/download`, {
+    headers: buildHeaders(),
+  });
+  if (!response.ok) {
+    throw new Error(i18n.t("common.requestFailed", { status: response.status }));
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = jobMarkdownFilename(originalFilename);
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
 export async function getProviderSettings(tenantSlug: string): Promise<ProviderSettings> {
   const response = await fetch(`${API_PREFIX}/t/${tenantSlug}/settings/providers`, {
     headers: buildHeaders(),

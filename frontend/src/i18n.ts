@@ -70,6 +70,8 @@ const resources = {
         retrying: "Retrying...",
         retryJob: "Retry Job",
         downloadMarkdown: "Download Markdown",
+        downloadingMarkdown: "Downloading...",
+        downloadFailed: "Failed to download markdown",
         markdownFile: "Markdown file: {{path}}",
       },
       transcript: {
@@ -195,6 +197,8 @@ const resources = {
         retrying: "Tentando de novo...",
         retryJob: "Reprocessar job",
         downloadMarkdown: "Baixar markdown",
+        downloadingMarkdown: "Baixando...",
+        downloadFailed: "Falha ao baixar markdown",
         markdownFile: "Arquivo markdown: {{path}}",
       },
       transcript: {

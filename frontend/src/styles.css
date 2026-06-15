@@ -1026,7 +1026,8 @@ button.btn--secondary:hover:not(:disabled) {
   margin: 0 0 24px;
 }
 
-.job-actions a {
+.job-actions a,
+.job-actions button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1040,9 +1041,15 @@ button.btn--secondary:hover:not(:disabled) {
   transition: background var(--transition);
 }
 
-.job-actions a:hover {
+.job-actions a:hover,
+.job-actions button:hover:not(:disabled) {
   background: rgba(200, 245, 96, 0.2);
   color: var(--color-accent-hover);
+}
+
+.job-actions button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 .page-loading {
