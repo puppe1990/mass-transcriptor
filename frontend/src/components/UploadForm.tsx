@@ -51,6 +51,14 @@ export function UploadForm({ tenantSlug }: { tenantSlug: string }) {
     setFiles((current) => removeAudioFile(current, fileToRemove));
   }
 
+  function clearAllFiles() {
+    setFiles([]);
+    setError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  }
+
   function onDragOver(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
     setIsDragging(true);
@@ -138,54 +146,66 @@ export function UploadForm({ tenantSlug }: { tenantSlug: string }) {
       />
 
       {files.length > 0 ? (
-        <ul className="upload-file-list">
-          {files.map((file) => (
-            <li key={fileKey(file)} className="upload-file-card">
-              <div className="upload-file-card__icon" aria-hidden="true">
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                </svg>
-              </div>
-              <div className="upload-file-card__body">
-                <p className="upload-file-card__name">
-                  {t("upload.selectedFile", { name: file.name })}
-                </p>
-                <p className="upload-file-card__meta">{formatFileSize(file.size)}</p>
-              </div>
-              <button
-                type="button"
-                className="upload-file-card__remove"
-                aria-label={t("upload.removeFile", { name: file.name })}
-                onClick={() => removeFile(file)}
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
+        <>
+          {files.length > 1 ? (
+            <div className="upload-file-list__toolbar">
+              <p className="upload-file-list__count">
+                {t("upload.selectedCount", { count: files.length })}
+              </p>
+              <button type="button" className="upload-file-list__clear" onClick={clearAllFiles}>
+                {t("upload.cleanAll")}
               </button>
-            </li>
-          ))}
-        </ul>
+            </div>
+          ) : null}
+          <ul className="upload-file-list">
+            {files.map((file) => (
+              <li key={fileKey(file)} className="upload-file-card">
+                <div className="upload-file-card__icon" aria-hidden="true">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                  </svg>
+                </div>
+                <div className="upload-file-card__body">
+                  <p className="upload-file-card__name">
+                    {t("upload.selectedFile", { name: file.name })}
+                  </p>
+                  <p className="upload-file-card__meta">{formatFileSize(file.size)}</p>
+                </div>
+                <button
+                  type="button"
+                  className="upload-file-card__remove"
+                  aria-label={t("upload.removeFile", { name: file.name })}
+                  onClick={() => removeFile(file)}
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
       ) : null}
 
       <button type="submit" disabled={files.length === 0 || submitting}>

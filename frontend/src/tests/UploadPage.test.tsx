@@ -175,3 +175,31 @@ test("removing a selected file hides it from the upload list", () => {
   expect(screen.getByText(/keep-me\.wav/i)).toBeTruthy();
   expect(screen.queryByText(/remove-me\.wav/i)).toBeNull();
 });
+
+test("clean all removes every selected file when multiple audios are queued", () => {
+  signInAsOwner();
+  render(
+    <MemoryRouter
+      initialEntries={["/t/acme/uploads"]}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <App />
+    </MemoryRouter>
+  );
+
+  const first = new File(["audio-a"], "first.wav", { type: "audio/wav" });
+  const second = new File(["audio-b"], "second.wav", { type: "audio/wav" });
+  fireEvent.change(screen.getByLabelText(/audio file/i), {
+    target: { files: [first, second] },
+  });
+
+  expect(screen.getByText(/first\.wav/i)).toBeTruthy();
+  expect(screen.getByText(/second\.wav/i)).toBeTruthy();
+  expect(screen.getByRole("button", { name: /clean all/i })).toBeTruthy();
+
+  fireEvent.click(screen.getByRole("button", { name: /clean all/i }));
+
+  expect(screen.queryByText(/first\.wav/i)).toBeNull();
+  expect(screen.queryByText(/second\.wav/i)).toBeNull();
+  expect(screen.queryByRole("button", { name: /clean all/i })).toBeNull();
+});

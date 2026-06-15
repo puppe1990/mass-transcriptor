@@ -498,6 +498,38 @@ button.btn--secondary:hover:not(:disabled) {
   list-style: none;
 }
 
+.upload-file-list__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.upload-file-list__count {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.upload-file-list__clear {
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  background: rgba(248, 113, 113, 0.08);
+  color: #f87171;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.upload-file-list__clear:hover {
+  background: rgba(248, 113, 113, 0.14);
+  border-color: rgba(248, 113, 113, 0.4);
+}
+
 .upload-file-card {
   display: flex;
   align-items: center;
