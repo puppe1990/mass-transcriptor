@@ -2,6 +2,10 @@
 
 Multi-tenant audio transcription MVP with React, FastAPI, SQLite, local storage, and asynchronous jobs.
 
+
+<img width="1666" height="914" alt="Screenshot 2026-06-15 at 12 55 00" src="https://github.com/user-attachments/assets/1d6a0dc0-50d7-48b2-8bab-e8b77342d7d7" />
+
+
 ## Local Development
 
 1. Create a Python virtualenv in `backend/` and install the backend dependencies.
