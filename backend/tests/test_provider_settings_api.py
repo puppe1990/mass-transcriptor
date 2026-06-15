@@ -1,10 +1,8 @@
-import json
-
 from fastapi.testclient import TestClient
 
 from app.db import Base, SessionLocal, engine
 from app.main import app
-from app.models import Tenant, TenantProviderSetting
+from app.models import Tenant
 
 
 def auth_header(client: TestClient, slug: str = "acme") -> dict[str, str]:
@@ -22,7 +20,8 @@ def auth_header(client: TestClient, slug: str = "acme") -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
 
 
-def test_get_provider_settings_returns_workspace_defaults():
+def test_get_provider_settings_returns_workspace_defaults(monkeypatch):
+    monkeypatch.setenv("ASSEMBLYAI_API_KEY", "")
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     client = TestClient(app)
@@ -33,7 +32,7 @@ def test_get_provider_settings_returns_workspace_defaults():
     assert response.status_code == 200
     assert response.json() == {
         "workspace_name": "Acme",
-        "default_provider": "whisper",
+        "default_provider": "assemblyai",
         "whisper_language": "auto",
         "providers": {
             "whisper": {"enabled": True, "has_api_key": False},
@@ -42,7 +41,24 @@ def test_get_provider_settings_returns_workspace_defaults():
     }
 
 
-def test_patch_provider_settings_encrypts_api_key_and_changes_default_provider():
+def test_get_provider_settings_reflects_assemblyai_env_key(monkeypatch):
+    monkeypatch.setenv("ASSEMBLYAI_API_KEY", "server-api-key")
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    client = TestClient(app)
+    headers = auth_header(client, "acme")
+
+    response = client.get("/api/t/acme/settings/providers", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json()["providers"]["assemblyai"] == {
+        "enabled": True,
+        "has_api_key": True,
+    }
+
+
+def test_patch_provider_settings_changes_default_provider(monkeypatch):
+    monkeypatch.setenv("ASSEMBLYAI_API_KEY", "server-api-key")
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     client = TestClient(app)
@@ -55,7 +71,6 @@ def test_patch_provider_settings_encrypts_api_key_and_changes_default_provider()
             "workspace_name": "Acme Audio Lab",
             "default_provider": "assemblyai",
             "whisper_language": "pt",
-            "assemblyai_api_key": "super-secret-key",
         },
     )
 
@@ -72,24 +87,12 @@ def test_patch_provider_settings_encrypts_api_key_and_changes_default_provider()
 
     with SessionLocal() as session:
         tenant = session.query(Tenant).filter(Tenant.slug == "acme").one()
-        setting = (
-            session.query(TenantProviderSetting)
-            .filter(
-                TenantProviderSetting.tenant_id == tenant.id,
-                TenantProviderSetting.provider_key == "assemblyai",
-            )
-            .one()
-        )
-
         assert tenant.default_provider == "assemblyai"
         assert tenant.name == "Acme Audio Lab"
-        assert setting.provider_key == "assemblyai"
-        assert setting.enabled == 1
-        assert "super-secret-key" not in (setting.config_json or "")
-        assert json.loads(setting.config_json or "{}")["api_key"] != "super-secret-key"
 
 
-def test_upload_uses_updated_default_provider():
+def test_upload_uses_updated_default_provider(monkeypatch):
+    monkeypatch.setenv("ASSEMBLYAI_API_KEY", "server-api-key")
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     client = TestClient(app)
@@ -102,7 +105,6 @@ def test_upload_uses_updated_default_provider():
             "workspace_name": "Acme",
             "default_provider": "assemblyai",
             "whisper_language": "auto",
-            "assemblyai_api_key": "super-secret-key",
         },
     )
 
@@ -116,7 +118,8 @@ def test_upload_uses_updated_default_provider():
     assert response.json()["provider_key"] == "assemblyai"
 
 
-def test_assemblyai_requires_workspace_key_for_workspace():
+def test_assemblyai_requires_server_env_key(monkeypatch):
+    monkeypatch.setenv("ASSEMBLYAI_API_KEY", "")
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     client = TestClient(app)
@@ -129,10 +132,13 @@ def test_assemblyai_requires_workspace_key_for_workspace():
     )
 
     assert response.status_code == 422
-    assert response.json()["detail"] == "AssemblyAI requires an API key for this workspace"
+    assert response.json()["detail"] == (
+        "AssemblyAI requires ASSEMBLYAI_API_KEY to be configured on the server"
+    )
 
 
-def test_patch_provider_settings_rejects_unsupported_whisper_language():
+def test_patch_provider_settings_rejects_unsupported_whisper_language(monkeypatch):
+    monkeypatch.setenv("ASSEMBLYAI_API_KEY", "")
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     client = TestClient(app)

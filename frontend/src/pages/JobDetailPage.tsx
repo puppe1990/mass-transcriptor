@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
 
 import { JobStatusBadge } from "../components/JobStatusBadge";
@@ -7,6 +8,7 @@ import { getJobDetail, retryJob } from "../lib/api";
 import type { JobDetail } from "../lib/types";
 
 export default function JobDetailPage() {
+  const { t } = useTranslation();
   const { tenantSlug = "", jobId = "" } = useParams();
   const [job, setJob] = useState<JobDetail | null>(null);
   const [isRetrying, setIsRetrying] = useState(false);
@@ -29,7 +31,14 @@ export default function JobDetailPage() {
   }, [tenantSlug, jobId]);
 
   if (!job) {
-    return <section className="page"><p>Loading job...</p></section>;
+    return (
+      <section className="page">
+        <div className="page-loading">
+          <div className="page-loading__spinner" aria-hidden="true" />
+          <span>{t("jobs.loadingJob")}</span>
+        </div>
+      </section>
+    );
   }
 
   async function handleRetry() {
@@ -45,26 +54,70 @@ export default function JobDetailPage() {
 
   return (
     <section className="page">
-      <p>
-        <Link to={`/t/${tenantSlug}/jobs`}>Back to jobs</Link>
-      </p>
-      <h1>{job.original_filename}</h1>
-      <p>
-        Provider: {job.provider_key} <JobStatusBadge status={job.status} />
-      </p>
-      <div className="job-actions">
-        {job.status === "failed" ? (
-          <button type="button" onClick={handleRetry} disabled={isRetrying}>
-            {isRetrying ? "Retrying..." : "Retry Job"}
-          </button>
+      <header className="page__header">
+        <Link className="page__back" to={`/t/${tenantSlug}/jobs`}>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          {t("jobs.backToJobs")}
+        </Link>
+        <h1 className="page__title">{job.original_filename}</h1>
+      </header>
+
+      <div className="page__body">
+        <div className="job-meta">
+          <div className="job-meta__item">
+            <p className="job-meta__label">{t("jobs.provider")}</p>
+            <p className="job-meta__value">{job.provider_key}</p>
+          </div>
+          <div className="job-meta__item">
+            <p className="job-meta__label">{t("jobs.status")}</p>
+            <p className="job-meta__value">
+              <JobStatusBadge status={job.status} />
+            </p>
+          </div>
+          {job.markdown_path ? (
+            <div className="job-meta__item">
+              <p className="job-meta__label">Output</p>
+              <p
+                className="job-meta__value"
+                style={{ fontSize: "12px", fontWeight: 400, color: "var(--color-text-muted)" }}
+              >
+                {job.markdown_path}
+              </p>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="job-actions">
+          {job.status === "failed" ? (
+            <button type="button" onClick={handleRetry} disabled={isRetrying}>
+              {isRetrying ? t("jobs.retrying") : t("jobs.retryJob")}
+            </button>
+          ) : null}
+          {job.markdown_path ? (
+            <a href={`/t/${tenantSlug}/jobs/${jobId}/download`}>{t("jobs.downloadMarkdown")}</a>
+          ) : null}
+        </div>
+
+        {job.error_message ? (
+          <p className="page-alert" role="alert">
+            {job.error_message}
+          </p>
         ) : null}
-        {job.markdown_path ? (
-          <a href={`/t/${tenantSlug}/jobs/${jobId}/download`}>Download Markdown</a>
-        ) : null}
+
+        <TranscriptPreview text={job.transcript_text} />
       </div>
-      {job.error_message ? <p role="alert">{job.error_message}</p> : null}
-      {job.markdown_path ? <p>Markdown file: {job.markdown_path}</p> : null}
-      <TranscriptPreview text={job.transcript_text} />
     </section>
   );
 }

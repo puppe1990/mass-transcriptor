@@ -18,7 +18,7 @@ class Tenant(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     slug: Mapped[str] = mapped_column(String(100), unique=True, index=True)
     name: Mapped[str] = mapped_column(String(200))
-    default_provider: Mapped[str] = mapped_column(String(50), default="whisper")
+    default_provider: Mapped[str] = mapped_column(String(50), default="assemblyai")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now

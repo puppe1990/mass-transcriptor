@@ -13,7 +13,7 @@ async function parseJson<T>(response: Response): Promise<T> {
 
 function buildHeaders(init?: HeadersInit): HeadersInit {
   const token = getAccessToken();
-  return token ? { ...init, Authorization: `Bearer ${token}` } : init ?? {};
+  return token ? { ...init, Authorization: `Bearer ${token}` } : (init ?? {});
 }
 
 export async function createUpload(tenantSlug: string, file: File): Promise<JobResponse> {
@@ -60,7 +60,6 @@ export async function updateProviderSettings(
     workspace_name: string;
     default_provider: string;
     whisper_language: "auto" | "pt" | "en" | "es";
-    assemblyai_api_key?: string;
   }
 ): Promise<ProviderSettings> {
   const response = await fetch(`${API_PREFIX}/t/${tenantSlug}/settings/providers`, {

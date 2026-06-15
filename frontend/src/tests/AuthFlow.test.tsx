@@ -18,7 +18,7 @@ test("saveAuth persists the access token", () => {
     token_type: "bearer",
     user: { id: 1, name: "Owner", email: "owner@example.com" },
     memberships: [],
-    tenant: null
+    tenant: null,
   });
   expect(getAccessToken()).toBe("abc123");
   clearAuth();
@@ -59,7 +59,9 @@ test("sign in page links to sign up", () => {
     </MemoryRouter>
   );
 
-  expect(screen.getByRole("link", { name: /create workspace/i }).getAttribute("href")).toBe("/signup");
+  expect(screen.getByRole("link", { name: /create workspace/i }).getAttribute("href")).toBe(
+    "/signup"
+  );
 });
 
 test("sign up page links to sign in", () => {
@@ -72,7 +74,9 @@ test("sign up page links to sign in", () => {
     </MemoryRouter>
   );
 
-  expect(screen.getByRole("link", { name: /sign in instead/i }).getAttribute("href")).toBe("/signin");
+  expect(screen.getByRole("link", { name: /sign in instead/i }).getAttribute("href")).toBe(
+    "/signin"
+  );
 });
 
 test("password field has visibility toggle on sign in", () => {
@@ -133,12 +137,15 @@ test("signup stores auth and redirects to workspace", async () => {
           token_type: "bearer",
           user: { id: 1, name: "Owner", email: "owner@example.com" },
           memberships: [{ tenant_id: 1, user_id: 1, role: "owner", tenant_slug: "acme" }],
-          tenant: { id: 1, slug: "acme", name: "Acme" }
+          tenant: { id: 1, slug: "acme", name: "Acme" },
         }),
         { status: 201, headers: { "Content-Type": "application/json" } }
       );
     }
-    return new Response(JSON.stringify({}), { status: 200, headers: { "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({}), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   };
 
   render(
@@ -176,15 +183,21 @@ test("signin stores auth and redirects to tenant jobs", async () => {
           token_type: "bearer",
           user: { id: 1, name: "Owner", email: "owner@example.com" },
           memberships: [{ tenant_id: 1, user_id: 1, role: "owner", tenant_slug: "acme" }],
-          tenant: null
+          tenant: null,
         }),
         { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
     if (url.includes("/api/t/acme/jobs")) {
-      return new Response(JSON.stringify([]), { status: 200, headers: { "Content-Type": "application/json" } });
+      return new Response(JSON.stringify([]), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }
-    return new Response(JSON.stringify({}), { status: 200, headers: { "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({}), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   };
 
   render(
@@ -213,7 +226,7 @@ test("shows logout action on protected routes", () => {
     token_type: "bearer",
     user: { id: 1, name: "Owner", email: "owner@example.com" },
     memberships: [{ tenant_id: 1, user_id: 1, role: "owner", tenant_slug: "acme" }],
-    tenant: { id: 1, slug: "acme", name: "Acme" }
+    tenant: { id: 1, slug: "acme", name: "Acme" },
   });
 
   render(
@@ -234,7 +247,7 @@ test("sign out clears auth and redirects to signin", async () => {
     token_type: "bearer",
     user: { id: 1, name: "Owner", email: "owner@example.com" },
     memberships: [{ tenant_id: 1, user_id: 1, role: "owner", tenant_slug: "acme" }],
-    tenant: { id: 1, slug: "acme", name: "Acme" }
+    tenant: { id: 1, slug: "acme", name: "Acme" },
   });
 
   render(
@@ -259,7 +272,7 @@ test("language selector switches the protected shell translations to portuguese"
     token_type: "bearer",
     user: { id: 1, name: "Owner", email: "owner@example.com" },
     memberships: [{ tenant_id: 1, user_id: 1, role: "owner", tenant_slug: "acme" }],
-    tenant: { id: 1, slug: "acme", name: "Acme" }
+    tenant: { id: 1, slug: "acme", name: "Acme" },
   });
 
   const originalFetch = global.fetch;
@@ -279,7 +292,10 @@ test("language selector switches the protected shell translations to portuguese"
         { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
-    return new Response(JSON.stringify({}), { status: 200, headers: { "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({}), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   };
 
   render(
