@@ -1,18 +1,22 @@
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 import { AuthForm } from "../components/AuthForm";
 import { AuthShell } from "../components/AuthShell";
 
 export default function SignInPage() {
+  const { t } = useTranslation();
+
   return (
     <AuthShell
-      eyebrow="Welcome back"
-      title="Sign In"
-      subtitle="Continue into your workspace and keep your transcripts flowing."
+      eyebrow={t("auth.welcomeBack")}
+      title={t("auth.signIn")}
+      subtitle={t("auth.signInSubtitle")}
     >
       <AuthForm mode="signin" />
       <p className="auth-shell__switch">
-        Need a workspace? <Link to="/signup">Create Workspace</Link>
+        {t("auth.needWorkspace")}{" "}
+        <Link to="/signup">{t("auth.createWorkspace")}</Link>
       </p>
     </AuthShell>
   );

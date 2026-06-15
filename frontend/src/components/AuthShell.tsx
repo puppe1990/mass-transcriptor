@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 export function AuthShell({
   eyebrow,
@@ -11,17 +12,22 @@ export function AuthShell({
   subtitle: string;
   children: ReactNode;
 }) {
+  const { t } = useTranslation();
+
   return (
     <section className="auth-shell">
       <div className="auth-shell__story">
-        <p className="auth-shell__eyebrow">Mass Transcriptor</p>
-        <h1 className="auth-shell__hero">Turn raw audio into structured notes.</h1>
-        <p className="auth-shell__lede">
-          Upload recordings, run Whisper or AssemblyAI, and keep every transcript saved as markdown.
-        </p>
+        <div>
+          <p className="auth-shell__eyebrow">Mass Transcriptor</p>
+          <h1 className="auth-shell__hero">{t("auth.storyTitle")}</h1>
+          <p className="auth-shell__lede">{t("auth.storyBody")}</p>
+        </div>
         <div className="auth-shell__visual" aria-hidden="true">
           <div className="auth-shell__wave auth-shell__wave--tall" />
           <div className="auth-shell__wave auth-shell__wave--mid" />
+          <div className="auth-shell__wave auth-shell__wave--short" />
+          <div className="auth-shell__wave auth-shell__wave--mid" />
+          <div className="auth-shell__wave auth-shell__wave--tall" />
           <div className="auth-shell__wave auth-shell__wave--short" />
           <div className="auth-shell__wave auth-shell__wave--mid" />
           <div className="auth-shell__wave auth-shell__wave--tall" />
