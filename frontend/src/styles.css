@@ -490,6 +490,14 @@ button.btn--secondary:hover:not(:disabled) {
   border: 0;
 }
 
+.upload-file-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
 .upload-file-card {
   display: flex;
   align-items: center;
@@ -498,6 +506,35 @@ button.btn--secondary:hover:not(:disabled) {
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   background: rgba(255, 255, 255, 0.03);
+}
+
+.upload-file-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.upload-file-card__remove {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-text-faint);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.upload-file-card__remove:hover {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.35);
+  background: rgba(248, 113, 113, 0.08);
 }
 
 .upload-file-card__icon {
@@ -796,6 +833,60 @@ button.btn--secondary:hover:not(:disabled) {
   font-size: 13px;
   color: var(--color-text-muted);
   font-variant-numeric: tabular-nums;
+}
+
+.jobs-table__batch-files {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--color-text-faint);
+  line-height: 1.5;
+}
+
+.job-batch-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.job-batch-tabs__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.job-batch-tabs__tab:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+  color: var(--color-text);
+}
+
+.job-batch-tabs__tab--active {
+  border-color: rgba(196, 255, 62, 0.35);
+  background: rgba(196, 255, 62, 0.08);
+  color: var(--color-text);
+}
+
+.job-batch-tabs__label {
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  word-break: break-all;
+}
+
+.job-batch-panel {
+  display: grid;
+  gap: 20px;
 }
 
 .jobs-empty {

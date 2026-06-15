@@ -2,24 +2,53 @@ import { DragEvent, FormEvent, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
-import { createUpload } from "../lib/api";
+import { createUploads } from "../lib/api";
 import type { JobResponse } from "../lib/types";
+
+function filesFromList(fileList: FileList | null | undefined): File[] {
+  return fileList ? Array.from(fileList) : [];
+}
+
+function fileKey(file: File): string {
+  return `${file.name}-${file.size}-${file.lastModified}`;
+}
+
+export function mergeAudioFiles(existing: File[], incoming: File[]): File[] {
+  const seen = new Set(existing.map(fileKey));
+  const merged = [...existing];
+  for (const file of incoming) {
+    const key = fileKey(file);
+    if (!seen.has(key)) {
+      seen.add(key);
+      merged.push(file);
+    }
+  }
+  return merged;
+}
+
+export function removeAudioFile(files: File[], fileToRemove: File): File[] {
+  const key = fileKey(fileToRemove);
+  return files.filter((file) => fileKey(file) !== key);
+}
 
 export function UploadForm({ tenantSlug }: { tenantSlug: string }) {
   const { t } = useTranslation();
   const inputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [file, setFile] = useState<File | null>(null);
-  const [job, setJob] = useState<JobResponse | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [jobs, setJobs] = useState<JobResponse[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
-  function acceptFile(nextFile: File | null) {
-    setFile(nextFile);
-    if (nextFile) {
-      setError(null);
-    }
+  function acceptFiles(nextFiles: File[]) {
+    if (nextFiles.length === 0) return;
+    setFiles((current) => mergeAudioFiles(current, nextFiles));
+    setError(null);
+  }
+
+  function removeFile(fileToRemove: File) {
+    setFiles((current) => removeAudioFile(current, fileToRemove));
   }
 
   function onDragOver(event: DragEvent<HTMLDivElement>) {
@@ -35,17 +64,17 @@ export function UploadForm({ tenantSlug }: { tenantSlug: string }) {
   function onDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
     setIsDragging(false);
-    acceptFile(event.dataTransfer.files?.[0] ?? null);
+    acceptFiles(filesFromList(event.dataTransfer.files));
   }
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!file) return;
+    if (files.length === 0) return;
     setSubmitting(true);
     setError(null);
     try {
-      const nextJob = await createUpload(tenantSlug, file);
-      setJob(nextJob);
+      const nextJobs = await createUploads(tenantSlug, files);
+      setJobs(nextJobs);
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : t("upload.uploadFailed"));
     } finally {
@@ -104,34 +133,62 @@ export function UploadForm({ tenantSlug }: { tenantSlug: string }) {
         aria-label="Audio file"
         type="file"
         accept="audio/*"
-        onChange={(event) => acceptFile(event.target.files?.[0] ?? null)}
+        multiple
+        onChange={(event) => acceptFiles(filesFromList(event.target.files))}
       />
 
-      {file ? (
-        <div className="upload-file-card">
-          <div className="upload-file-card__icon" aria-hidden="true">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-            </svg>
-          </div>
-          <div>
-            <p className="upload-file-card__name">Selected file: {file.name}</p>
-            <p className="upload-file-card__meta">{formatFileSize(file.size)}</p>
-          </div>
-        </div>
+      {files.length > 0 ? (
+        <ul className="upload-file-list">
+          {files.map((file) => (
+            <li key={fileKey(file)} className="upload-file-card">
+              <div className="upload-file-card__icon" aria-hidden="true">
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+              </div>
+              <div className="upload-file-card__body">
+                <p className="upload-file-card__name">
+                  {t("upload.selectedFile", { name: file.name })}
+                </p>
+                <p className="upload-file-card__meta">{formatFileSize(file.size)}</p>
+              </div>
+              <button
+                type="button"
+                className="upload-file-card__remove"
+                aria-label={t("upload.removeFile", { name: file.name })}
+                onClick={() => removeFile(file)}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </li>
+          ))}
+        </ul>
       ) : null}
 
-      <button type="submit" disabled={!file || submitting}>
+      <button type="submit" disabled={files.length === 0 || submitting}>
         {submitting ? t("upload.uploading") : t("upload.startTranscription")}
       </button>
 
@@ -141,7 +198,7 @@ export function UploadForm({ tenantSlug }: { tenantSlug: string }) {
         </p>
       ) : null}
 
-      {job ? (
+      {jobs.length > 0 ? (
         <div className="upload-success">
           <svg
             width="18"
@@ -157,8 +214,23 @@ export function UploadForm({ tenantSlug }: { tenantSlug: string }) {
             <polyline points="20 6 9 17 4 12" />
           </svg>
           <span>
-            {t("upload.queued")}{" "}
-            <Link to={`/t/${tenantSlug}/jobs/${job.id}`}>{t("upload.openJob")}</Link>
+            {jobs.length === 1
+              ? t("upload.queued")
+              : t("upload.queuedMultiple", { count: jobs.length })}{" "}
+            {jobs.length > 1 && jobs[0]?.batch_id ? (
+              <Link to={`/t/${tenantSlug}/batches/${jobs[0].batch_id}`}>
+                {t("upload.openBatch")}
+              </Link>
+            ) : (
+              jobs.map((job, index) => (
+                <span key={job.id}>
+                  {index > 0 ? ", " : null}
+                  <Link to={`/t/${tenantSlug}/jobs/${job.id}`}>
+                    {t("upload.openJob")} #{job.id}
+                  </Link>
+                </span>
+              ))
+            )}
           </span>
         </div>
       ) : null}

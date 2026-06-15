@@ -2,6 +2,7 @@ import { afterEach, expect, test, vi } from "vitest";
 
 import {
   createUpload,
+  createUploads,
   getJobDetail,
   getProviderSettings,
   listJobs,
@@ -27,6 +28,10 @@ test("api helpers use /api-prefixed endpoints", async () => {
   await signUp({});
   await signIn({});
   await createUpload("acme", new File(["audio"], "sample.wav", { type: "audio/wav" }));
+  await createUploads("acme", [
+    new File(["audio-a"], "a.wav", { type: "audio/wav" }),
+    new File(["audio-b"], "b.wav", { type: "audio/wav" }),
+  ]);
   await listJobs("acme");
   await getJobDetail("acme", "123");
   await retryJob("acme", "123");
@@ -40,6 +45,7 @@ test("api helpers use /api-prefixed endpoints", async () => {
   expect(fetchSpy.mock.calls.map(([url]) => String(url))).toEqual([
     "/api/auth/signup",
     "/api/auth/signin",
+    "/api/t/acme/uploads",
     "/api/t/acme/uploads",
     "/api/t/acme/jobs",
     "/api/t/acme/jobs/123",

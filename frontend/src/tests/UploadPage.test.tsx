@@ -84,3 +84,94 @@ test("manual file selection still works with dropzone enabled", () => {
 
   expect(screen.getByText(/selected file: manual\.wav/i)).toBeTruthy();
 });
+
+test("file input accepts multiple audio files at once", () => {
+  signInAsOwner();
+  render(
+    <MemoryRouter
+      initialEntries={["/t/acme/uploads"]}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <App />
+    </MemoryRouter>
+  );
+
+  const first = new File(["audio-a"], "meeting-a.wav", { type: "audio/wav" });
+  const second = new File(["audio-b"], "meeting-b.wav", { type: "audio/wav" });
+  fireEvent.change(screen.getByLabelText(/audio file/i), {
+    target: { files: [first, second] },
+  });
+
+  expect(screen.getByText(/meeting-a\.wav/i)).toBeTruthy();
+  expect(screen.getByText(/meeting-b\.wav/i)).toBeTruthy();
+});
+
+test("dropzone accepts multiple dragged audio files", () => {
+  signInAsOwner();
+  render(
+    <MemoryRouter
+      initialEntries={["/t/acme/uploads"]}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <App />
+    </MemoryRouter>
+  );
+
+  const first = new File(["audio-a"], "drag-a.wav", { type: "audio/wav" });
+  const second = new File(["audio-b"], "drag-b.wav", { type: "audio/wav" });
+  fireEvent.drop(screen.getByLabelText(/audio dropzone/i), {
+    dataTransfer: { files: [first, second] },
+  });
+
+  expect(screen.getByText(/drag-a\.wav/i)).toBeTruthy();
+  expect(screen.getByText(/drag-b\.wav/i)).toBeTruthy();
+});
+
+test("selecting files in separate picker sessions keeps all selections visible", () => {
+  signInAsOwner();
+  render(
+    <MemoryRouter
+      initialEntries={["/t/acme/uploads"]}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <App />
+    </MemoryRouter>
+  );
+
+  const fileInput = screen.getByLabelText(/audio file/i);
+  const first = new File(["audio-a"], "WhatsApp Ptt 2026-06-14 at 22.22.13.ogg", {
+    type: "audio/ogg",
+  });
+  const second = new File(["audio-b"], "WhatsApp Ptt 2026-06-14 at 22.22.14.ogg", {
+    type: "audio/ogg",
+  });
+
+  fireEvent.change(fileInput, { target: { files: [first] } });
+  fireEvent.change(fileInput, { target: { files: [second] } });
+
+  expect(screen.getByText(/22\.22\.13\.ogg/i)).toBeTruthy();
+  expect(screen.getByText(/22\.22\.14\.ogg/i)).toBeTruthy();
+});
+
+test("removing a selected file hides it from the upload list", () => {
+  signInAsOwner();
+  render(
+    <MemoryRouter
+      initialEntries={["/t/acme/uploads"]}
+      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+    >
+      <App />
+    </MemoryRouter>
+  );
+
+  const first = new File(["audio-a"], "keep-me.wav", { type: "audio/wav" });
+  const second = new File(["audio-b"], "remove-me.wav", { type: "audio/wav" });
+  fireEvent.change(screen.getByLabelText(/audio file/i), {
+    target: { files: [first, second] },
+  });
+
+  fireEvent.click(screen.getByRole("button", { name: /remove remove-me\.wav/i }));
+
+  expect(screen.getByText(/keep-me\.wav/i)).toBeTruthy();
+  expect(screen.queryByText(/remove-me\.wav/i)).toBeNull();
+});

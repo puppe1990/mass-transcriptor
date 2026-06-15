@@ -1,6 +1,13 @@
 import i18n from "../i18n";
 import { getAccessToken } from "./auth";
-import type { AuthPayload, JobDetail, JobResponse, JobSummary, ProviderSettings } from "./types";
+import type {
+  AuthPayload,
+  JobBatchDetail,
+  JobDetail,
+  JobResponse,
+  JobSummary,
+  ProviderSettings,
+} from "./types";
 
 const API_PREFIX = "/api";
 
@@ -16,15 +23,28 @@ function buildHeaders(init?: HeadersInit): HeadersInit {
   return token ? { ...init, Authorization: `Bearer ${token}` } : (init ?? {});
 }
 
-export async function createUpload(tenantSlug: string, file: File): Promise<JobResponse> {
+export async function createUploads(tenantSlug: string, files: File[]): Promise<JobResponse[]> {
   const body = new FormData();
-  body.append("file", file);
+  for (const file of files) {
+    body.append("files", file);
+  }
   const response = await fetch(`${API_PREFIX}/t/${tenantSlug}/uploads`, {
     method: "POST",
     body,
     headers: buildHeaders(),
   });
-  return parseJson<JobResponse>(response);
+  return parseJson<JobResponse[]>(response);
+}
+
+export async function createUpload(tenantSlug: string, file: File): Promise<JobResponse[]> {
+  return createUploads(tenantSlug, [file]);
+}
+
+export async function getJobBatch(tenantSlug: string, batchId: string): Promise<JobBatchDetail> {
+  const response = await fetch(`${API_PREFIX}/t/${tenantSlug}/batches/${batchId}`, {
+    headers: buildHeaders(),
+  });
+  return parseJson<JobBatchDetail>(response);
 }
 
 export async function listJobs(tenantSlug: string): Promise<JobSummary[]> {

@@ -4,6 +4,7 @@ export interface JobResponse {
   id: number;
   status: JobStatus;
   provider_key: string;
+  batch_id?: number | null;
 }
 
 export interface JobSummary extends JobResponse {
@@ -18,6 +19,12 @@ export interface JobDetail extends JobResponse {
   error_message?: string | null;
   markdown_path?: string | null;
   transcript_text?: string | null;
+}
+
+export interface JobBatchDetail {
+  id: number;
+  created_at: string;
+  jobs: JobDetail[];
 }
 
 export interface UserSummary {
