@@ -23,6 +23,17 @@ require_command() {
   fi
 }
 
+kill_port_if_in_use() {
+  local port="$1"
+  local pids
+  pids="$(lsof -tiTCP:"$port" -sTCP:LISTEN 2>/dev/null || true)"
+  if [[ -n "$pids" ]]; then
+    echo "Port $port is in use. Killing PID(s): $pids"
+    # shellcheck disable=SC2086
+    kill -9 $pids 2>/dev/null || true
+  fi
+}
+
 require_command npm
 require_path "$BACKEND_DIR/.venv" "Missing backend virtualenv at backend/.venv"
 require_path "$ROOT_DIR/package.json" "Missing package.json at repository root"
@@ -47,6 +58,9 @@ cleanup() {
 }
 
 trap cleanup EXIT INT TERM
+
+kill_port_if_in_use 8001
+kill_port_if_in_use 5173
 
 (
   cd "$BACKEND_DIR"
