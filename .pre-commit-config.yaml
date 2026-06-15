@@ -1,13 +1,44 @@
 repos:
   - repo: local
     hooks:
-      - id: ruff-check
-        name: ruff check
-        entry: backend/.venv/bin/ruff check --fix
+      - id: backend-ruff-check
+        name: backend ruff check
+        entry: bash -c 'cd backend && (test -x .venv/bin/ruff && .venv/bin/ruff check --fix . || python -m ruff check --fix .)'
         language: system
         files: ^backend/.*\.py$
-      - id: ruff-format
-        name: ruff format
-        entry: backend/.venv/bin/ruff format
+        pass_filenames: false
+
+      - id: backend-ruff-format
+        name: backend ruff format
+        entry: bash -c 'cd backend && (test -x .venv/bin/ruff && .venv/bin/ruff format . || python -m ruff format .)'
         language: system
         files: ^backend/.*\.py$
+        pass_filenames: false
+
+      - id: backend-pytest
+        name: backend pytest
+        entry: bash -c 'cd backend && (test -x .venv/bin/pytest && .venv/bin/pytest -q || python -m pytest -q)'
+        language: system
+        files: ^backend/
+        pass_filenames: false
+
+      - id: frontend-eslint
+        name: frontend eslint
+        entry: bash -c 'cd frontend && npm run lint'
+        language: system
+        files: ^frontend/src/.*\.(ts|tsx)$
+        pass_filenames: false
+
+      - id: frontend-prettier
+        name: frontend prettier
+        entry: bash -c 'cd frontend && npm run format'
+        language: system
+        files: ^frontend/.*\.(ts|tsx|css|html|json)$
+        pass_filenames: false
+
+      - id: frontend-vitest
+        name: frontend vitest
+        entry: bash -c 'cd frontend && npm run test'
+        language: system
+        files: ^frontend/
+        pass_filenames: false

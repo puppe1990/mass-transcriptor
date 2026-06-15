@@ -6,8 +6,12 @@
     "dev:api": "cd backend && . .venv/bin/activate && python -m uvicorn app.main:app --reload",
     "dev:worker": "cd backend && . .venv/bin/activate && python -m app.worker",
     "dev:web": "npm --prefix frontend run dev",
+    "lint": "npm --prefix frontend run lint && zsh -lc 'cd backend && . .venv/bin/activate && ruff check .'",
+    "format": "npm --prefix frontend run format && zsh -lc 'cd backend && . .venv/bin/activate && ruff format .'",
+    "format:check": "npm --prefix frontend run format:check && zsh -lc 'cd backend && . .venv/bin/activate && ruff format --check .'",
     "test": "npm --prefix frontend test && zsh -lc 'cd backend && . .venv/bin/activate && pytest -q'",
-    "build": "npm --prefix frontend run build"
+    "build": "npm --prefix frontend run build",
+    "prepare:hooks": "zsh -lc 'cd backend && . .venv/bin/activate && pre-commit install'"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"
