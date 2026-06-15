@@ -59,6 +59,13 @@ export interface ProviderState {
   has_api_key: boolean;
 }
 
+export interface AssemblyAiCredits {
+  status: "available" | "unavailable" | "not_configured" | "error";
+  balance_usd: number | null;
+  message: string | null;
+  dashboard_url: string;
+}
+
 export interface ProviderSettings {
   workspace_name: string;
   default_provider: string;
@@ -67,4 +74,5 @@ export interface ProviderSettings {
     whisper: ProviderState;
     assemblyai: ProviderState;
   };
+  assemblyai_credits?: AssemblyAiCredits | null;
 }

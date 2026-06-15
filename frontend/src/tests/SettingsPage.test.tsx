@@ -35,6 +35,12 @@ test("renders provider settings page", async () => {
             whisper: { enabled: true, has_api_key: false },
             assemblyai: { enabled: false, has_api_key: false },
           },
+          assemblyai_credits: {
+            status: "not_configured",
+            balance_usd: null,
+            message: null,
+            dashboard_url: "https://www.assemblyai.com/dashboard/account/billing",
+          },
         }),
         { status: 200, headers: { "Content-Type": "application/json" } }
       );
@@ -79,6 +85,12 @@ test("saves provider settings without workspace api key", async () => {
             whisper: { enabled: true, has_api_key: false },
             assemblyai: { enabled: true, has_api_key: true },
           },
+          assemblyai_credits: {
+            status: "available",
+            balance_usd: 12.34,
+            message: null,
+            dashboard_url: "https://www.assemblyai.com/dashboard/account/billing",
+          },
         }),
         { status: 200, headers: { "Content-Type": "application/json" } }
       );
@@ -95,6 +107,12 @@ test("saves provider settings without workspace api key", async () => {
           providers: {
             whisper: { enabled: true, has_api_key: false },
             assemblyai: { enabled: true, has_api_key: true },
+          },
+          assemblyai_credits: {
+            status: "available",
+            balance_usd: 12.34,
+            message: null,
+            dashboard_url: "https://www.assemblyai.com/dashboard/account/billing",
           },
         }),
         { status: 200, headers: { "Content-Type": "application/json" } }
@@ -118,12 +136,13 @@ test("saves provider settings without workspace api key", async () => {
   await screen.findByRole("heading", { name: /provider settings/i });
   fireEvent.change(screen.getByLabelText(/workspace name/i), { target: { value: "Acme Studio" } });
   fireEvent.change(screen.getByLabelText(/default provider/i), { target: { value: "assemblyai" } });
-  fireEvent.change(screen.getByLabelText(/whisper default language/i), { target: { value: "pt" } });
+  fireEvent.change(screen.getByLabelText(/transcription language/i), { target: { value: "pt" } });
   fireEvent.click(screen.getByRole("button", { name: /save settings/i }));
 
   expect(await screen.findByText(/settings saved/i)).toBeTruthy();
   expect(screen.getByDisplayValue("Acme Studio")).toBeTruthy();
   expect(screen.getByDisplayValue("Portuguese")).toBeTruthy();
+  expect(screen.getByText(/\$12\.34 remaining/i)).toBeTruthy();
 
   global.fetch = originalFetch;
 });

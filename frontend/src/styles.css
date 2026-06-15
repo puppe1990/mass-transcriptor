@@ -1262,6 +1262,18 @@ button.btn--secondary:hover:not(:disabled) {
   color: var(--color-danger);
 }
 
+.settings-status--neutral {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-muted);
+}
+
+.settings-status--neutral a {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .settings-form__footer {
   display: grid;
   gap: 14px;
