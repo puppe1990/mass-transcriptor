@@ -16,7 +16,7 @@ function signInAsOwner() {
     token_type: "bearer",
     user: { id: 1, name: "Owner", email: "owner@example.com" },
     memberships: [{ tenant_id: 1, user_id: 1, role: "owner", tenant_slug: "acme" }],
-    tenant: { id: 1, slug: "acme", name: "Acme" }
+    tenant: { id: 1, slug: "acme", name: "Acme" },
   });
 }
 
@@ -60,7 +60,7 @@ test("dropzone accepts a dragged audio file", () => {
 
   const file = new File(["audio"], "meeting.wav", { type: "audio/wav" });
   fireEvent.drop(screen.getByLabelText(/audio dropzone/i), {
-    dataTransfer: { files: [file] }
+    dataTransfer: { files: [file] },
   });
 
   expect(screen.getByText(/selected file: meeting\.wav/i)).toBeTruthy();
@@ -79,7 +79,7 @@ test("manual file selection still works with dropzone enabled", () => {
 
   const file = new File(["audio"], "manual.wav", { type: "audio/wav" });
   fireEvent.change(screen.getByLabelText(/audio file/i), {
-    target: { files: [file] }
+    target: { files: [file] },
   });
 
   expect(screen.getByText(/selected file: manual\.wav/i)).toBeTruthy();

@@ -15,8 +15,7 @@ export default function SignInPage() {
     >
       <AuthForm mode="signin" />
       <p className="auth-shell__switch">
-        {t("auth.needWorkspace")}{" "}
-        <Link to="/signup">{t("auth.createWorkspace")}</Link>
+        {t("auth.needWorkspace")} <Link to="/signup">{t("auth.createWorkspace")}</Link>
       </p>
     </AuthShell>
   );

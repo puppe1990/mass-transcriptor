@@ -11,7 +11,7 @@ test("renders jobs heading on jobs route", () => {
     token_type: "bearer",
     user: { id: 1, name: "Owner", email: "owner@example.com" },
     memberships: [{ tenant_id: 1, user_id: 1, role: "owner", tenant_slug: "acme" }],
-    tenant: { id: 1, slug: "acme", name: "Acme" }
+    tenant: { id: 1, slug: "acme", name: "Acme" },
   });
   render(
     <MemoryRouter

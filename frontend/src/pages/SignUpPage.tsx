@@ -15,8 +15,7 @@ export default function SignUpPage() {
     >
       <AuthForm mode="signup" />
       <p className="auth-shell__switch">
-        {t("auth.alreadyHaveAccount")}{" "}
-        <Link to="/signin">{t("auth.signInInstead")}</Link>
+        {t("auth.alreadyHaveAccount")} <Link to="/signin">{t("auth.signInInstead")}</Link>
       </p>
     </AuthShell>
   );

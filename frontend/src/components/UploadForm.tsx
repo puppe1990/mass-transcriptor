@@ -78,7 +78,16 @@ export function UploadForm({ tenantSlug }: { tenantSlug: string }) {
         onDrop={onDrop}
       >
         <div className="upload-dropzone__icon" aria-hidden="true">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M9 18V5l12-2v13" />
             <circle cx="6" cy="18" r="3" />
             <circle cx="18" cy="16" r="3" />
@@ -101,7 +110,16 @@ export function UploadForm({ tenantSlug }: { tenantSlug: string }) {
       {file ? (
         <div className="upload-file-card">
           <div className="upload-file-card__icon" aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
               <polyline points="14 2 14 8 20 8" />
             </svg>
@@ -117,11 +135,25 @@ export function UploadForm({ tenantSlug }: { tenantSlug: string }) {
         {submitting ? t("upload.uploading") : t("upload.startTranscription")}
       </button>
 
-      {error ? <p className="upload-error" role="alert">{error}</p> : null}
+      {error ? (
+        <p className="upload-error" role="alert">
+          {error}
+        </p>
+      ) : null}
 
       {job ? (
         <div className="upload-success">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
             <polyline points="20 6 9 17 4 12" />
           </svg>
           <span>

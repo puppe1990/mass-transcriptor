@@ -39,7 +39,10 @@ test("renders provider settings page", async () => {
         { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
-    return new Response(JSON.stringify({}), { status: 200, headers: { "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({}), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   };
 
   render(
@@ -96,7 +99,10 @@ test("saves assemblyai byok settings", async () => {
         { status: 200, headers: { "Content-Type": "application/json" } }
       );
     }
-    return new Response(JSON.stringify({}), { status: 200, headers: { "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({}), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   };
 
   render(

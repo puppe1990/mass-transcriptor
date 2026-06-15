@@ -16,7 +16,7 @@ test("renders loading state on job detail route", () => {
     token_type: "bearer",
     user: { id: 1, name: "Owner", email: "owner@example.com" },
     memberships: [{ tenant_id: 1, user_id: 1, role: "owner", tenant_slug: "acme" }],
-    tenant: { id: 1, slug: "acme", name: "Acme" }
+    tenant: { id: 1, slug: "acme", name: "Acme" },
   });
   render(
     <MemoryRouter
@@ -35,7 +35,7 @@ test("exposes retry and download actions based on job state", async () => {
     token_type: "bearer",
     user: { id: 1, name: "Owner", email: "owner@example.com" },
     memberships: [{ tenant_id: 1, user_id: 1, role: "owner", tenant_slug: "acme" }],
-    tenant: { id: 1, slug: "acme", name: "Acme" }
+    tenant: { id: 1, slug: "acme", name: "Acme" },
   });
   const originalFetch = global.fetch;
   global.fetch = async () =>
@@ -48,7 +48,7 @@ test("exposes retry and download actions based on job state", async () => {
         original_filename: "sample.wav",
         error_message: "failed once",
         markdown_path: "/tmp/transcript.md",
-        transcript_text: "hello"
+        transcript_text: "hello",
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
@@ -74,7 +74,7 @@ test("copies transcript text from job detail", async () => {
     token_type: "bearer",
     user: { id: 1, name: "Owner", email: "owner@example.com" },
     memberships: [{ tenant_id: 1, user_id: 1, role: "owner", tenant_slug: "acme" }],
-    tenant: { id: 1, slug: "acme", name: "Acme" }
+    tenant: { id: 1, slug: "acme", name: "Acme" },
   });
   const originalFetch = global.fetch;
   const originalClipboard = navigator.clipboard;
@@ -82,8 +82,8 @@ test("copies transcript text from job detail", async () => {
 
   Object.assign(navigator, {
     clipboard: {
-      writeText
-    }
+      writeText,
+    },
   });
 
   global.fetch = async () =>
@@ -95,7 +95,7 @@ test("copies transcript text from job detail", async () => {
         upload_id: 1,
         original_filename: "sample.wav",
         markdown_path: "/tmp/transcript.md",
-        transcript_text: "hello copy"
+        transcript_text: "hello copy",
       }),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );

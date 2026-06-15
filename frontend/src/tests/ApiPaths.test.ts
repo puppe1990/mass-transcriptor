@@ -16,11 +16,12 @@ afterEach(() => {
 });
 
 test("api helpers use /api-prefixed endpoints", async () => {
-  const fetchSpy = vi.spyOn(global, "fetch").mockImplementation(async () =>
-    new Response(JSON.stringify({}), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    })
+  const fetchSpy = vi.spyOn(global, "fetch").mockImplementation(
+    async () =>
+      new Response(JSON.stringify({}), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })
   );
 
   await signUp({});

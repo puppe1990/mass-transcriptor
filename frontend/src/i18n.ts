@@ -7,7 +7,8 @@ const resources = {
     translation: {
       auth: {
         storyTitle: "Turn raw audio into structured notes.",
-        storyBody: "Upload recordings, run Whisper or AssemblyAI, and keep every transcript saved as markdown.",
+        storyBody:
+          "Upload recordings, run Whisper or AssemblyAI, and keep every transcript saved as markdown.",
         welcomeBack: "Welcome back",
         signIn: "Sign In",
         signInSubtitle: "Continue into your workspace and keep your transcripts flowing.",
@@ -15,7 +16,8 @@ const resources = {
         createWorkspace: "Create Workspace",
         createWorkspaceEyebrow: "Create workspace",
         createWorkspaceTitle: "Create Workspace",
-        createWorkspaceSubtitle: "Set up your transcription hub and start turning recordings into clean markdown.",
+        createWorkspaceSubtitle:
+          "Set up your transcription hub and start turning recordings into clean markdown.",
         alreadyHaveAccount: "Already have an account?",
         signInInstead: "Sign In Instead",
         workspaceName: "Workspace name",
@@ -70,11 +72,11 @@ const resources = {
       settings: {
         introEyebrow: "Workspace controls",
         title: "Provider Settings",
-        lede:
-          "Choose which engine runs each transcript and keep external credentials scoped to this workspace only.",
+        lede: "Choose which engine runs each transcript and keep external credentials scoped to this workspace only.",
         workspace: "Workspace",
         slug: "Slug: {{tenantSlug}}",
-        whisperNote: "Whisper runs locally. AssemblyAI only works when this workspace has its own API key configured.",
+        whisperNote:
+          "Whisper runs locally. AssemblyAI only works when this workspace has its own API key configured.",
         provider: "Provider",
         credentials: "Credentials",
         defaultProvider: "Default provider",
@@ -117,7 +119,8 @@ const resources = {
     translation: {
       auth: {
         storyTitle: "Transforme audio bruto em notas estruturadas.",
-        storyBody: "Envie gravacoes, rode Whisper ou AssemblyAI e salve cada transcricao em markdown.",
+        storyBody:
+          "Envie gravacoes, rode Whisper ou AssemblyAI e salve cada transcricao em markdown.",
         welcomeBack: "Bem-vindo de volta",
         signIn: "Entrar",
         signInSubtitle: "Entre no seu workspace e mantenha suas transcricoes fluindo.",
@@ -125,7 +128,8 @@ const resources = {
         createWorkspace: "Criar workspace",
         createWorkspaceEyebrow: "Criar workspace",
         createWorkspaceTitle: "Criar Workspace",
-        createWorkspaceSubtitle: "Monte seu hub de transcricao e comece a transformar gravacoes em markdown limpo.",
+        createWorkspaceSubtitle:
+          "Monte seu hub de transcricao e comece a transformar gravacoes em markdown limpo.",
         alreadyHaveAccount: "Ja tem uma conta?",
         signInInstead: "Entrar no lugar",
         workspaceName: "Nome do workspace",
@@ -183,7 +187,8 @@ const resources = {
         lede: "Escolha qual motor roda cada transcricao e mantenha credenciais externas isoladas por workspace.",
         workspace: "Workspace",
         slug: "Slug: {{tenantSlug}}",
-        whisperNote: "Whisper roda localmente. AssemblyAI so funciona quando este workspace tem sua propria chave de API.",
+        whisperNote:
+          "Whisper roda localmente. AssemblyAI so funciona quando este workspace tem sua propria chave de API.",
         provider: "Provider",
         credentials: "Credenciais",
         defaultProvider: "Provider padrao",
@@ -197,7 +202,8 @@ const resources = {
         pasteApiKey: "Cole a chave de API",
         status: "Status",
         missing: "Ausente",
-        applyChanges: "As mudancas valem para novos uploads. Jobs existentes mantem o provider original.",
+        applyChanges:
+          "As mudancas valem para novos uploads. Jobs existentes mantem o provider original.",
         saveSettings: "Salvar configuracoes",
         loading: "Carregando configuracoes...",
         loadFailed: "Falha ao carregar configuracoes",

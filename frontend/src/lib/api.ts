@@ -13,7 +13,7 @@ async function parseJson<T>(response: Response): Promise<T> {
 
 function buildHeaders(init?: HeadersInit): HeadersInit {
   const token = getAccessToken();
-  return token ? { ...init, Authorization: `Bearer ${token}` } : init ?? {};
+  return token ? { ...init, Authorization: `Bearer ${token}` } : (init ?? {});
 }
 
 export async function createUpload(tenantSlug: string, file: File): Promise<JobResponse> {

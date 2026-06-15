@@ -12,7 +12,16 @@ export function JobsTable({ jobs }: { jobs: JobSummary[] }) {
     return (
       <div className="jobs-empty">
         <div className="jobs-empty__icon" aria-hidden="true">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <line x1="8" y1="6" x2="21" y2="6" />
             <line x1="8" y1="12" x2="21" y2="12" />
             <line x1="8" y1="18" x2="21" y2="18" />

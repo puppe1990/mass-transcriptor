@@ -12,7 +12,9 @@ export default function JobsPage() {
   const [jobs, setJobs] = useState<JobSummary[]>([]);
 
   useEffect(() => {
-    listJobs(tenantSlug).then(setJobs).catch(() => setJobs([]));
+    listJobs(tenantSlug)
+      .then(setJobs)
+      .catch(() => setJobs([]));
   }, [tenantSlug]);
 
   return (

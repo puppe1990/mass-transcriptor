@@ -30,8 +30,16 @@ export function AuthForm({ mode }: { mode: "signup" | "signin" }) {
     <form className="auth-form" onSubmit={onSubmit}>
       {mode === "signup" ? (
         <>
-          <input aria-label="Workspace name" name="workspace_name" placeholder={t("auth.workspaceName")} />
-          <input aria-label="Workspace slug" name="workspace_slug" placeholder={t("auth.workspaceSlug")} />
+          <input
+            aria-label="Workspace name"
+            name="workspace_name"
+            placeholder={t("auth.workspaceName")}
+          />
+          <input
+            aria-label="Workspace slug"
+            name="workspace_slug"
+            placeholder={t("auth.workspaceSlug")}
+          />
           <input aria-label="Name" name="name" placeholder={t("auth.name")} />
         </>
       ) : null}
@@ -70,7 +78,11 @@ export function AuthForm({ mode }: { mode: "signup" | "signin" }) {
       <button className="auth-form__submit" type="submit">
         {mode === "signup" ? t("auth.createAccount") : t("auth.signIn")}
       </button>
-      {error ? <p className="auth-form__error" role="alert">{error}</p> : null}
+      {error ? (
+        <p className="auth-form__error" role="alert">
+          {error}
+        </p>
+      ) : null}
     </form>
   );
 }

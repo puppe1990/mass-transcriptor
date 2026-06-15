@@ -56,7 +56,17 @@ export default function JobDetailPage() {
     <section className="page">
       <header className="page__header">
         <Link className="page__back" to={`/t/${tenantSlug}/jobs`}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
             <polyline points="15 18 9 12 15 6" />
           </svg>
           {t("jobs.backToJobs")}
@@ -79,7 +89,10 @@ export default function JobDetailPage() {
           {job.markdown_path ? (
             <div className="job-meta__item">
               <p className="job-meta__label">Output</p>
-              <p className="job-meta__value" style={{ fontSize: "12px", fontWeight: 400, color: "var(--color-text-muted)" }}>
+              <p
+                className="job-meta__value"
+                style={{ fontSize: "12px", fontWeight: 400, color: "var(--color-text-muted)" }}
+              >
                 {job.markdown_path}
               </p>
             </div>
@@ -97,7 +110,11 @@ export default function JobDetailPage() {
           ) : null}
         </div>
 
-        {job.error_message ? <p className="page-alert" role="alert">{job.error_message}</p> : null}
+        {job.error_message ? (
+          <p className="page-alert" role="alert">
+            {job.error_message}
+          </p>
+        ) : null}
 
         <TranscriptPreview text={job.transcript_text} />
       </div>
