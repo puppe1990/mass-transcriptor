@@ -79,12 +79,26 @@ class Upload(Base):
     tenant: Mapped[Tenant] = relationship()
 
 
+class JobBatch(Base):
+    __tablename__ = "job_batches"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    tenant_id: Mapped[int] = mapped_column(ForeignKey("tenants.id"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+
+    tenant: Mapped[Tenant] = relationship()
+    jobs: Mapped[list[TranscriptionJob]] = relationship(back_populates="batch")
+
+
 class TranscriptionJob(Base):
     __tablename__ = "transcription_jobs"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     tenant_id: Mapped[int] = mapped_column(ForeignKey("tenants.id"), index=True)
     upload_id: Mapped[int] = mapped_column(ForeignKey("uploads.id"), unique=True)
+    batch_id: Mapped[int | None] = mapped_column(
+        ForeignKey("job_batches.id"), nullable=True, index=True
+    )
     provider_key: Mapped[str] = mapped_column(String(50))
     status: Mapped[str] = mapped_column(String(30), default="queued", index=True)
     error_message: Mapped[str | None] = mapped_column(String(500), nullable=True)
@@ -97,6 +111,7 @@ class TranscriptionJob(Base):
 
     upload: Mapped[Upload] = relationship()
     tenant: Mapped[Tenant] = relationship()
+    batch: Mapped[JobBatch | None] = relationship(back_populates="jobs")
 
 
 class TranscriptionResult(Base):

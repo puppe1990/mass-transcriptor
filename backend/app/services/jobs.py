@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
-from app.models import TranscriptionJob, TranscriptionResult, Upload
+from app.models import JobBatch, TranscriptionJob, TranscriptionResult, Upload
 
 
 def utc_now() -> datetime:
@@ -42,12 +42,25 @@ def update_upload_audio_path(session: Session, upload: Upload, audio_path: str) 
     return upload
 
 
+def create_job_batch(session: Session, tenant_id: int) -> JobBatch:
+    batch = JobBatch(tenant_id=tenant_id)
+    session.add(batch)
+    session.commit()
+    session.refresh(batch)
+    return batch
+
+
 def create_transcription_job(
-    session: Session, tenant_id: int, upload_id: int, provider_key: str
+    session: Session,
+    tenant_id: int,
+    upload_id: int,
+    provider_key: str,
+    batch_id: int | None = None,
 ) -> TranscriptionJob:
     job = TranscriptionJob(
         tenant_id=tenant_id,
         upload_id=upload_id,
+        batch_id=batch_id,
         provider_key=provider_key,
         status="queued",
     )
@@ -67,6 +80,17 @@ def list_jobs_for_tenant(session: Session, tenant_id: int) -> list[Transcription
     return list(session.scalars(stmt))
 
 
+def get_batch_for_tenant(session: Session, tenant_id: int, batch_id: int) -> JobBatch | None:
+    stmt = (
+        select(JobBatch)
+        .options(
+            selectinload(JobBatch.jobs).selectinload(TranscriptionJob.upload),
+        )
+        .where(JobBatch.tenant_id == tenant_id, JobBatch.id == batch_id)
+    )
+    return session.scalar(stmt)
+
+
 def get_job_for_tenant(session: Session, tenant_id: int, job_id: int) -> TranscriptionJob | None:
     stmt = (
         select(TranscriptionJob)
@@ -79,6 +103,24 @@ def get_job_for_tenant(session: Session, tenant_id: int, job_id: int) -> Transcr
 def get_result_for_job(session: Session, job_id: int) -> TranscriptionResult | None:
     stmt = select(TranscriptionResult).where(TranscriptionResult.job_id == job_id)
     return session.scalar(stmt)
+
+
+def build_job_detail(
+    session: Session,
+    job: TranscriptionJob,
+) -> dict[str, object]:
+    result = get_result_for_job(session, job.id)
+    return {
+        "id": job.id,
+        "status": job.status,
+        "provider_key": job.provider_key,
+        "batch_id": job.batch_id,
+        "upload_id": job.upload_id,
+        "original_filename": job.upload.original_filename,
+        "error_message": job.error_message,
+        "markdown_path": result.markdown_path if result else None,
+        "transcript_text": result.transcript_text if result else None,
+    }
 
 
 def get_next_queued_job(session: Session) -> TranscriptionJob | None:

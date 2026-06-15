@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
+import { ThemeToggle } from "./ThemeToggle";
+
 export function AuthShell({
   eyebrow,
   title,
@@ -37,6 +39,9 @@ export function AuthShell({
         </div>
       </div>
       <div className="auth-shell__panel">
+        <div className="auth-shell__panel-toolbar">
+          <ThemeToggle className="theme-toggle theme-toggle--compact btn--ghost" />
+        </div>
         <p className="auth-shell__eyebrow">{eyebrow}</p>
         <h2 className="auth-shell__panel-title">{title}</h2>
         <p className="auth-shell__panel-subtitle">{subtitle}</p>

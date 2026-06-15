@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedLayout } from "./components/ProtectedLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import "./i18n";
+import JobBatchPage from "./pages/JobBatchPage";
 import JobDetailPage from "./pages/JobDetailPage";
 import JobsPage from "./pages/JobsPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -26,6 +27,7 @@ export default function App() {
       >
         <Route path="uploads" element={<UploadPage />} />
         <Route path="jobs" element={<JobsPage />} />
+        <Route path="batches/:batchId" element={<JobBatchPage />} />
         <Route path="jobs/:jobId" element={<JobDetailPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>

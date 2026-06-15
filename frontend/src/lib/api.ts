@@ -1,6 +1,13 @@
 import i18n from "../i18n";
 import { getAccessToken } from "./auth";
-import type { AuthPayload, JobDetail, JobResponse, JobSummary, ProviderSettings } from "./types";
+import type {
+  AuthPayload,
+  JobBatchDetail,
+  JobDetail,
+  JobResponse,
+  JobSummary,
+  ProviderSettings,
+} from "./types";
 
 const API_PREFIX = "/api";
 
@@ -16,15 +23,28 @@ function buildHeaders(init?: HeadersInit): HeadersInit {
   return token ? { ...init, Authorization: `Bearer ${token}` } : (init ?? {});
 }
 
-export async function createUpload(tenantSlug: string, file: File): Promise<JobResponse> {
+export async function createUploads(tenantSlug: string, files: File[]): Promise<JobResponse[]> {
   const body = new FormData();
-  body.append("file", file);
+  for (const file of files) {
+    body.append("files", file);
+  }
   const response = await fetch(`${API_PREFIX}/t/${tenantSlug}/uploads`, {
     method: "POST",
     body,
     headers: buildHeaders(),
   });
-  return parseJson<JobResponse>(response);
+  return parseJson<JobResponse[]>(response);
+}
+
+export async function createUpload(tenantSlug: string, file: File): Promise<JobResponse[]> {
+  return createUploads(tenantSlug, [file]);
+}
+
+export async function getJobBatch(tenantSlug: string, batchId: string): Promise<JobBatchDetail> {
+  const response = await fetch(`${API_PREFIX}/t/${tenantSlug}/batches/${batchId}`, {
+    headers: buildHeaders(),
+  });
+  return parseJson<JobBatchDetail>(response);
 }
 
 export async function listJobs(tenantSlug: string): Promise<JobSummary[]> {
@@ -45,6 +65,34 @@ export async function retryJob(tenantSlug: string, jobId: string): Promise<JobRe
     headers: buildHeaders(),
   });
   return parseJson<JobResponse>(response);
+}
+
+export function jobMarkdownFilename(originalFilename: string): string {
+  const stem = originalFilename.replace(/\.[^.]+$/, "");
+  return `${stem}.md`;
+}
+
+export async function downloadJobMarkdown(
+  tenantSlug: string,
+  jobId: string,
+  originalFilename: string
+): Promise<void> {
+  const response = await fetch(`${API_PREFIX}/t/${tenantSlug}/jobs/${jobId}/download`, {
+    headers: buildHeaders(),
+  });
+  if (!response.ok) {
+    throw new Error(i18n.t("common.requestFailed", { status: response.status }));
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = jobMarkdownFilename(originalFilename);
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
 }
 
 export async function getProviderSettings(tenantSlug: string): Promise<ProviderSettings> {

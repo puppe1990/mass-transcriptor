@@ -28,12 +28,33 @@ def test_post_upload_returns_queued_job():
     response = client.post(
         "/api/t/acme/uploads",
         headers=headers,
-        files={"file": ("sample.wav", b"fake-audio", "audio/wav")},
+        files=[("files", ("sample.wav", b"fake-audio", "audio/wav"))],
     )
     assert response.status_code == 201
     payload = response.json()
-    assert payload["status"] == "queued"
-    assert payload["provider_key"] == "assemblyai"
+    assert len(payload) == 1
+    assert payload[0]["status"] == "queued"
+    assert payload[0]["provider_key"] == "assemblyai"
+
+
+def test_post_upload_accepts_multiple_audio_files():
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+    client = TestClient(app)
+    headers = auth_header(client, "acme")
+    response = client.post(
+        "/api/t/acme/uploads",
+        headers=headers,
+        files=[
+            ("files", ("meeting-a.wav", b"fake-audio-a", "audio/wav")),
+            ("files", ("meeting-b.wav", b"fake-audio-b", "audio/wav")),
+        ],
+    )
+    assert response.status_code == 201
+    payload = response.json()
+    assert len(payload) == 2
+    assert all(item["status"] == "queued" for item in payload)
+    assert all(item["provider_key"] == "assemblyai" for item in payload)
 
 
 def test_retry_failed_job_requeues_it():

@@ -12,6 +12,7 @@ from app.db import get_session
 from app.models import Tenant, TenantMembership, User
 from app.schemas import (
     AuthResponse,
+    JobBatchDetailResponse,
     JobDetailResponse,
     JobResponse,
     JobSummaryResponse,
@@ -25,8 +26,11 @@ from app.schemas import (
 )
 from app.services.auth import create_access_token, get_current_user, hash_password, verify_password
 from app.services.jobs import (
+    build_job_detail,
+    create_job_batch,
     create_transcription_job,
     create_upload_record,
+    get_batch_for_tenant,
     get_job_for_tenant,
     get_result_for_job,
     list_jobs_for_tenant,
@@ -147,35 +151,58 @@ def patch_provider_settings(
 
 
 @router.post(
-    "/t/{tenant_slug}/uploads", status_code=status.HTTP_201_CREATED, response_model=JobResponse
+    "/t/{tenant_slug}/uploads",
+    status_code=status.HTTP_201_CREATED,
+    response_model=list[JobResponse],
 )
 async def upload_audio(
     tenant_slug: str,
-    file: UploadFile = File(...),
+    files: list[UploadFile] = File(...),
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
-) -> JobResponse:
+) -> list[JobResponse]:
+    if not files:
+        raise HTTPException(status_code=400, detail="No files provided")
+
     tenant = require_accessible_tenant(session, current_user.id, tenant_slug)
-
-    contents = await file.read()
-    if not contents:
-        raise HTTPException(status_code=400, detail="Empty file")
-
-    upload = create_upload_record(
-        session=session,
-        tenant_id=tenant.id,
-        original_filename=file.filename or "audio.bin",
-        mime_type=file.content_type or "application/octet-stream",
-        size_bytes=len(contents),
-        audio_path="pending",
-    )
-    audio_path = write_audio_bytes(
-        tenant.slug, upload.id, Path(upload.original_filename).name, contents
-    )
-    update_upload_audio_path(session, upload, audio_path)
     provider_key = tenant.default_provider or settings.default_provider
-    job = create_transcription_job(session, tenant.id, upload.id, provider_key)
-    return JobResponse(id=job.id, status=job.status, provider_key=job.provider_key)
+    batch = create_job_batch(session, tenant.id) if len(files) > 1 else None
+    jobs: list[JobResponse] = []
+
+    for file in files:
+        contents = await file.read()
+        if not contents:
+            raise HTTPException(status_code=400, detail="Empty file")
+
+        upload = create_upload_record(
+            session=session,
+            tenant_id=tenant.id,
+            original_filename=file.filename or "audio.bin",
+            mime_type=file.content_type or "application/octet-stream",
+            size_bytes=len(contents),
+            audio_path="pending",
+        )
+        audio_path = write_audio_bytes(
+            tenant.slug, upload.id, Path(upload.original_filename).name, contents
+        )
+        update_upload_audio_path(session, upload, audio_path)
+        job = create_transcription_job(
+            session,
+            tenant.id,
+            upload.id,
+            provider_key,
+            batch_id=batch.id if batch else None,
+        )
+        jobs.append(
+            JobResponse(
+                id=job.id,
+                status=job.status,
+                provider_key=job.provider_key,
+                batch_id=job.batch_id,
+            )
+        )
+
+    return jobs
 
 
 @router.get("/t/{tenant_slug}/jobs", response_model=list[JobSummaryResponse])
@@ -191,12 +218,32 @@ def list_jobs(
             id=job.id,
             status=job.status,
             provider_key=job.provider_key,
+            batch_id=job.batch_id,
             upload_id=job.upload_id,
             original_filename=job.upload.original_filename,
             created_at=job.created_at.isoformat(),
         )
         for job in jobs
     ]
+
+
+@router.get("/t/{tenant_slug}/batches/{batch_id}", response_model=JobBatchDetailResponse)
+def get_job_batch(
+    tenant_slug: str,
+    batch_id: int,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+) -> JobBatchDetailResponse:
+    tenant = require_accessible_tenant(session, current_user.id, tenant_slug)
+    batch = get_batch_for_tenant(session, tenant.id, batch_id)
+    if batch is None:
+        raise HTTPException(status_code=404, detail="Batch not found")
+    ordered_jobs = sorted(batch.jobs, key=lambda job: job.id)
+    return JobBatchDetailResponse(
+        id=batch.id,
+        created_at=batch.created_at.isoformat(),
+        jobs=[JobDetailResponse(**build_job_detail(session, job)) for job in ordered_jobs],
+    )
 
 
 @router.get("/t/{tenant_slug}/jobs/{job_id}", response_model=JobDetailResponse)
@@ -210,17 +257,7 @@ def get_job_detail(
     job = get_job_for_tenant(session, tenant.id, job_id)
     if job is None:
         raise HTTPException(status_code=404, detail="Job not found")
-    result = get_result_for_job(session, job.id)
-    return JobDetailResponse(
-        id=job.id,
-        status=job.status,
-        provider_key=job.provider_key,
-        upload_id=job.upload_id,
-        original_filename=job.upload.original_filename,
-        error_message=job.error_message,
-        markdown_path=result.markdown_path if result else None,
-        transcript_text=result.transcript_text if result else None,
-    )
+    return JobDetailResponse(**build_job_detail(session, job))
 
 
 @router.post("/t/{tenant_slug}/jobs/{job_id}/retry", response_model=JobResponse)
@@ -237,7 +274,12 @@ def retry_failed_job(
     if job.status != "failed":
         raise HTTPException(status_code=409, detail="Only failed jobs can be retried")
     retried = retry_job(session, job)
-    return JobResponse(id=retried.id, status=retried.status, provider_key=retried.provider_key)
+    return JobResponse(
+        id=retried.id,
+        status=retried.status,
+        provider_key=retried.provider_key,
+        batch_id=retried.batch_id,
+    )
 
 
 @router.get("/t/{tenant_slug}/jobs/{job_id}/download")

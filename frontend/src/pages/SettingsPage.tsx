@@ -3,7 +3,16 @@ import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 
 import { getProviderSettings, updateProviderSettings } from "../lib/api";
-import type { ProviderSettings } from "../lib/types";
+import type { AssemblyAiCredits, ProviderSettings } from "../lib/types";
+
+function formatCreditsBalance(balanceUsd: number): string {
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(balanceUsd);
+}
 
 export default function SettingsPage() {
   const { t } = useTranslation();
@@ -53,6 +62,42 @@ export default function SettingsPage() {
     } catch (nextError) {
       setError(nextError instanceof Error ? nextError.message : t("settings.saveFailed"));
     }
+  }
+
+  const assemblyAiCredits = settings?.assemblyai_credits ?? null;
+
+  function renderAssemblyAiCredits(credits: AssemblyAiCredits | null) {
+    if (!settings?.providers.assemblyai.has_api_key || !credits) {
+      return null;
+    }
+
+    if (credits.status === "available" && credits.balance_usd !== null) {
+      return (
+        <span className="settings-status settings-status--ok">
+          {t("settings.assemblyAiCreditsAvailable", {
+            balance: formatCreditsBalance(credits.balance_usd),
+          })}
+        </span>
+      );
+    }
+
+    if (credits.status === "error") {
+      return (
+        <span className="settings-status settings-status--missing">
+          {credits.message ?? t("settings.assemblyAiCreditsError")}
+        </span>
+      );
+    }
+
+    return (
+      <span className="settings-status settings-status--neutral">
+        {t("settings.assemblyAiCreditsUnavailable")}
+        {" · "}
+        <a href={credits.dashboard_url} target="_blank" rel="noreferrer">
+          {t("settings.assemblyAiCreditsDashboard")}
+        </a>
+      </span>
+    );
   }
 
   return (
@@ -134,6 +179,12 @@ export default function SettingsPage() {
                     : t("settings.missing")}
                 </span>
               </div>
+              {settings.providers.assemblyai.has_api_key && assemblyAiCredits ? (
+                <div className="settings-form__status-row">
+                  <span className="settings-shell__label">{t("settings.assemblyAiCredits")}</span>
+                  {renderAssemblyAiCredits(assemblyAiCredits)}
+                </div>
+              ) : null}
             </section>
 
             <div className="settings-form__footer">

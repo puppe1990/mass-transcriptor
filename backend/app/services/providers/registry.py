@@ -13,5 +13,5 @@ def get_provider(
     if provider_key == "assemblyai":
         if not api_key:
             raise RuntimeError("ASSEMBLYAI_API_KEY is not configured")
-        return AssemblyAiProvider(api_key)
+        return AssemblyAiProvider(api_key, language=language)
     raise KeyError(provider_key)

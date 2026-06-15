@@ -179,7 +179,7 @@ def test_process_next_job_uses_server_assemblyai_env_key(monkeypatch, tmp_path):
         session.add(job)
         session.commit()
 
-    captured: dict[str, str | None] = {"api_key": None}
+    captured: dict[str, str | None] = {"api_key": None, "language": "unset"}
 
     class DummyProvider:
         def transcribe(self, file_path: str) -> ProviderResult:
@@ -193,12 +193,84 @@ def test_process_next_job_uses_server_assemblyai_env_key(monkeypatch, tmp_path):
         provider_key: str, api_key: str | None = None, language: str | None = None
     ) -> DummyProvider:
         captured["api_key"] = api_key
+        captured["language"] = language
         return DummyProvider()
 
     monkeypatch.setattr("app.worker.get_provider", fake_get_provider)
 
     assert process_next_job() is True
     assert captured["api_key"] == "server-api-key"
+    assert captured["language"] is None
+
+
+def test_process_next_job_passes_assemblyai_language(monkeypatch, tmp_path):
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
+
+    audio_path = tmp_path / "sample.ogg"
+    audio_path.write_bytes(b"fake-audio")
+
+    with SessionLocal() as session:
+        tenant = Tenant(slug="acme", name="Acme", default_provider="assemblyai")
+        user = User(name="Owner", email="owner@example.com", password_hash="hashed")
+        session.add_all([tenant, user])
+        session.commit()
+        session.refresh(tenant)
+        session.refresh(user)
+        session.add_all(
+            [
+                TenantMembership(tenant_id=tenant.id, user_id=user.id, role="owner"),
+                TenantProviderSetting(
+                    tenant_id=tenant.id,
+                    provider_key="whisper",
+                    enabled=1,
+                    config_json=json.dumps({"language": "pt"}),
+                ),
+            ]
+        )
+        session.commit()
+
+        upload = Upload(
+            tenant_id=tenant.id,
+            original_filename="sample.ogg",
+            mime_type="audio/ogg",
+            size_bytes=10,
+            audio_path=str(audio_path),
+        )
+        session.add(upload)
+        session.commit()
+        session.refresh(upload)
+
+        job = TranscriptionJob(
+            tenant_id=tenant.id,
+            upload_id=upload.id,
+            provider_key="assemblyai",
+            status="queued",
+        )
+        session.add(job)
+        session.commit()
+
+    captured: dict[str, str | None] = {"language": None}
+
+    class DummyProvider:
+        def transcribe(self, file_path: str) -> ProviderResult:
+            return ProviderResult(
+                transcript_text="transcript",
+                provider_key="assemblyai",
+                metadata={"id": "tr_123"},
+            )
+
+    def fake_get_provider(
+        provider_key: str, api_key: str | None = None, language: str | None = None
+    ) -> DummyProvider:
+        captured["language"] = language
+        return DummyProvider()
+
+    monkeypatch.setenv("ASSEMBLYAI_API_KEY", "server-api-key")
+    monkeypatch.setattr("app.worker.get_provider", fake_get_provider)
+
+    assert process_next_job() is True
+    assert captured["language"] == "pt"
 
 
 def test_process_next_job_passes_whisper_language(monkeypatch, tmp_path):

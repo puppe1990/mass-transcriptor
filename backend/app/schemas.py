@@ -48,11 +48,19 @@ class ProviderStateResponse(BaseModel):
     has_api_key: bool
 
 
+class AssemblyAiCreditsResponse(BaseModel):
+    status: str
+    balance_usd: float | None = None
+    message: str | None = None
+    dashboard_url: str
+
+
 class ProviderSettingsResponse(BaseModel):
     workspace_name: str
     default_provider: str
     whisper_language: str
     providers: dict[str, ProviderStateResponse]
+    assemblyai_credits: AssemblyAiCreditsResponse | None = None
 
 
 class ProviderSettingsUpdateRequest(BaseModel):
@@ -65,6 +73,7 @@ class JobResponse(BaseModel):
     id: int
     status: str
     provider_key: str
+    batch_id: int | None = None
 
 
 class JobSummaryResponse(JobResponse):
@@ -79,3 +88,9 @@ class JobDetailResponse(JobResponse):
     error_message: str | None = None
     markdown_path: str | None = None
     transcript_text: str | None = None
+
+
+class JobBatchDetailResponse(BaseModel):
+    id: int
+    created_at: str
+    jobs: list[JobDetailResponse]

@@ -102,7 +102,7 @@ def test_upload_rejects_unauthenticated_requests():
 
     client = TestClient(app)
     response = client.post(
-        "/api/t/acme/uploads", files={"file": ("sample.wav", b"data", "audio/wav")}
+        "/api/t/acme/uploads", files=[("files", ("sample.wav", b"data", "audio/wav"))]
     )
     assert response.status_code == 401
 
@@ -134,7 +134,7 @@ def test_upload_rejects_user_without_membership():
     response = client.post(
         "/api/t/acme/uploads",
         headers={"Authorization": f"Bearer {outsider_token}"},
-        files={"file": ("sample.wav", b"data", "audio/wav")},
+        files=[("files", ("sample.wav", b"data", "audio/wav"))],
     )
     assert response.status_code == 403
 
@@ -156,6 +156,6 @@ def test_upload_accepts_user_with_membership():
     response = client.post(
         "/api/t/acme/uploads",
         headers={"Authorization": f"Bearer {token}"},
-        files={"file": ("sample.wav", b"data", "audio/wav")},
+        files=[("files", ("sample.wav", b"data", "audio/wav"))],
     )
     assert response.status_code == 201

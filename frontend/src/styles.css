@@ -44,6 +44,37 @@
   color-scheme: dark;
 }
 
+:root[data-theme="light"] {
+  --color-bg: #f4f7f2;
+  --color-bg-elevated: #ffffff;
+  --color-bg-card: #fafcfa;
+  --color-bg-input: #ffffff;
+  --color-surface: rgba(255, 255, 255, 0.92);
+
+  --color-text: #121916;
+  --color-text-muted: rgba(18, 25, 22, 0.68);
+  --color-text-faint: rgba(18, 25, 22, 0.46);
+
+  --color-accent: #6f9f00;
+  --color-accent-hover: #5d8600;
+  --color-accent-muted: rgba(111, 159, 0, 0.12);
+  --color-accent-glow: rgba(111, 159, 0, 0.18);
+
+  --color-border: rgba(18, 25, 22, 0.1);
+  --color-border-strong: rgba(18, 25, 22, 0.16);
+
+  --color-success: #4f8f1a;
+  --color-warning: #b8860b;
+  --color-danger: #d64545;
+  --color-danger-bg: rgba(214, 69, 69, 0.1);
+
+  --shadow-sm: 0 4px 20px rgba(18, 25, 22, 0.06);
+  --shadow-md: 0 12px 48px rgba(18, 25, 22, 0.08);
+  --shadow-lg: 0 24px 80px rgba(18, 25, 22, 0.1);
+
+  color-scheme: light;
+}
+
 /* ── Base ──────────────────────────────────────────────────── */
 *,
 *::before,
@@ -490,6 +521,46 @@ button.btn--secondary:hover:not(:disabled) {
   border: 0;
 }
 
+.upload-file-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.upload-file-list__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.upload-file-list__count {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.upload-file-list__clear {
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  background: rgba(248, 113, 113, 0.08);
+  color: #f87171;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.upload-file-list__clear:hover {
+  background: rgba(248, 113, 113, 0.14);
+  border-color: rgba(248, 113, 113, 0.4);
+}
+
 .upload-file-card {
   display: flex;
   align-items: center;
@@ -498,6 +569,35 @@ button.btn--secondary:hover:not(:disabled) {
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   background: rgba(255, 255, 255, 0.03);
+}
+
+.upload-file-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.upload-file-card__remove {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-text-faint);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.upload-file-card__remove:hover {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.35);
+  background: rgba(248, 113, 113, 0.08);
 }
 
 .upload-file-card__icon {
@@ -798,6 +898,60 @@ button.btn--secondary:hover:not(:disabled) {
   font-variant-numeric: tabular-nums;
 }
 
+.jobs-table__batch-files {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--color-text-faint);
+  line-height: 1.5;
+}
+
+.job-batch-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.job-batch-tabs__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.job-batch-tabs__tab:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+  color: var(--color-text);
+}
+
+.job-batch-tabs__tab--active {
+  border-color: rgba(196, 255, 62, 0.35);
+  background: rgba(196, 255, 62, 0.08);
+  color: var(--color-text);
+}
+
+.job-batch-tabs__label {
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  word-break: break-all;
+}
+
+.job-batch-panel {
+  display: grid;
+  gap: 20px;
+}
+
 .jobs-empty {
   display: grid;
   place-items: center;
@@ -935,7 +1089,8 @@ button.btn--secondary:hover:not(:disabled) {
   margin: 0 0 24px;
 }
 
-.job-actions a {
+.job-actions a,
+.job-actions button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -949,9 +1104,15 @@ button.btn--secondary:hover:not(:disabled) {
   transition: background var(--transition);
 }
 
-.job-actions a:hover {
+.job-actions a:hover,
+.job-actions button:hover:not(:disabled) {
   background: rgba(200, 245, 96, 0.2);
   color: var(--color-accent-hover);
+}
+
+.job-actions button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 .page-loading {
@@ -1171,6 +1332,18 @@ button.btn--secondary:hover:not(:disabled) {
   color: var(--color-danger);
 }
 
+.settings-status--neutral {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-muted);
+}
+
+.settings-status--neutral a {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .settings-form__footer {
   display: grid;
   gap: 14px;
@@ -1251,4 +1424,66 @@ button.btn--secondary:hover:not(:disabled) {
   .jobs-table-wrap {
     overflow-x: auto;
   }
+}
+
+/* ── Theme toggle ──────────────────────────────────────────── */
+.theme-toggle {
+  width: 100%;
+  justify-content: flex-start;
+}
+
+.theme-toggle--compact {
+  width: auto;
+  margin-left: auto;
+}
+
+.auth-shell__panel-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+/* ── Light mode refinements ────────────────────────────────── */
+:root[data-theme="light"] body {
+  background:
+    radial-gradient(ellipse 80% 50% at 10% -10%, rgba(200, 245, 96, 0.16), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 95% 100%, rgba(56, 120, 100, 0.08), transparent 45%),
+    var(--color-bg);
+}
+
+:root[data-theme="light"] button.btn--ghost:hover:not(:disabled),
+:root[data-theme="light"] .app-sidebar__links a:hover {
+  background: rgba(18, 25, 22, 0.04);
+}
+
+:root[data-theme="light"] .app-sidebar {
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.8) 0%, transparent 40%), var(--color-surface);
+}
+
+:root[data-theme="light"] .page__header,
+:root[data-theme="light"] .upload-dropzone,
+:root[data-theme="light"] .upload-file-card,
+:root[data-theme="light"] .settings-card,
+:root[data-theme="light"] .auth-shell__panel {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+:root[data-theme="light"] .page__header {
+  background: linear-gradient(180deg, rgba(18, 25, 22, 0.03), transparent);
+}
+
+:root[data-theme="light"] .upload-dropzone {
+  background: rgba(18, 25, 22, 0.02);
+}
+
+:root[data-theme="light"] .upload-file-card {
+  background: rgba(18, 25, 22, 0.025);
+}
+
+:root[data-theme="light"] .app-control--select,
+:root[data-theme="light"] .settings-form__field select {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%236f9f00' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"),
+    linear-gradient(var(--color-bg-input), var(--color-bg-input));
 }

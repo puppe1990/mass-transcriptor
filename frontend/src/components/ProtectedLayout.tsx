@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useNavigate, useParams } from "react-router-dom";
 
 import { clearAuth } from "../lib/auth";
+import { ThemeToggle } from "./ThemeToggle";
 
 function NavIcon({ name }: { name: "uploads" | "jobs" | "settings" }) {
   if (name === "uploads") {
@@ -131,6 +132,8 @@ export function ProtectedLayout() {
         </div>
 
         <div className="app-sidebar__footer">
+          <ThemeToggle />
+
           <label className="app-sidebar__field">
             <span>{t("sidebar.language")}</span>
             <select
