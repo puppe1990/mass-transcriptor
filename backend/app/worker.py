@@ -28,10 +28,10 @@ def process_next_job() -> bool:
             mark_job_processing(session, job)
             provider_api_key = None
             provider_language = None
+            whisper_language = resolve_whisper_language(session, job.tenant_id)
             if job.provider_key == "assemblyai":
                 provider_api_key = resolve_assemblyai_api_key(session, job.tenant_id)
-            if job.provider_key == "whisper":
-                whisper_language = resolve_whisper_language(session, job.tenant_id)
+            if job.provider_key in {"whisper", "assemblyai"}:
                 provider_language = None if whisper_language == "auto" else whisper_language
             provider = get_provider(
                 job.provider_key, api_key=provider_api_key, language=provider_language

@@ -16,6 +16,56 @@ def test_get_provider_returns_assemblyai_provider():
     assert provider.provider_key == "assemblyai"
 
 
+@patch("app.services.providers.assemblyai_provider.aai.Transcriber")
+def test_assemblyai_provider_enables_language_detection_by_default(transcriber_cls):
+    transcriber = transcriber_cls.return_value
+    transcriber.transcribe.return_value = type(
+        "Transcript",
+        (),
+        {
+            "status": __import__("assemblyai").TranscriptStatus.completed,
+            "text": "ola",
+            "id": "tr_123",
+            "language_code": "pt",
+            "error": None,
+        },
+    )()
+
+    provider = get_provider("assemblyai", api_key="test-key")
+    result = provider.transcribe("/tmp/file.ogg")
+
+    assert result.transcript_text == "ola"
+    assert result.metadata == {"id": "tr_123", "language_code": "pt"}
+    config = transcriber.transcribe.call_args.kwargs["config"]
+    assert config.language_detection is True
+    assert config.language_code is None
+    assert config.speech_models == ["universal-3-pro", "universal-2"]
+
+
+@patch("app.services.providers.assemblyai_provider.aai.Transcriber")
+def test_assemblyai_provider_passes_explicit_language_code(transcriber_cls):
+    transcriber = transcriber_cls.return_value
+    transcriber.transcribe.return_value = type(
+        "Transcript",
+        (),
+        {
+            "status": __import__("assemblyai").TranscriptStatus.completed,
+            "text": "hola",
+            "id": "tr_456",
+            "language_code": "es",
+            "error": None,
+        },
+    )()
+
+    provider = get_provider("assemblyai", api_key="test-key", language="es")
+    provider.transcribe("/tmp/file.ogg")
+
+    config = transcriber.transcribe.call_args.kwargs["config"]
+    assert config.language_code == "es"
+    assert config.language_detection is not True
+    assert config.speech_models == ["universal-3-pro", "universal-2"]
+
+
 def test_get_provider_requires_assemblyai_key():
     with pytest.raises(RuntimeError, match="ASSEMBLYAI_API_KEY"):
         get_provider("assemblyai")
