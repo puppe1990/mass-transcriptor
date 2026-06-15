@@ -127,6 +127,12 @@ const resources = {
         en: "English",
         "pt-BR": "Português (Brasil)",
       },
+      theme: {
+        lightMode: "Light mode",
+        darkMode: "Dark mode",
+        switchToLight: "Switch to light mode",
+        switchToDark: "Switch to dark mode",
+      },
       common: {
         requestFailed: "Request failed with status {{status}}",
       },
@@ -255,6 +261,12 @@ const resources = {
       language: {
         en: "English",
         "pt-BR": "Portugues (Brasil)",
+      },
+      theme: {
+        lightMode: "Modo claro",
+        darkMode: "Modo escuro",
+        switchToLight: "Alternar para modo claro",
+        switchToDark: "Alternar para modo escuro",
       },
       common: {
         requestFailed: "Requisicao falhou com status {{status}}",

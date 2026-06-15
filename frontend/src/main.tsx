@@ -4,7 +4,10 @@ import { BrowserRouter } from "react-router-dom";
 
 import App from "./App";
 import "./i18n";
+import { initializeTheme } from "./lib/theme";
 import "./styles.css";
+
+initializeTheme();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
