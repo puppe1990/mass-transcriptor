@@ -65,6 +65,7 @@ class JobResponse(BaseModel):
     id: int
     status: str
     provider_key: str
+    batch_id: int | None = None
 
 
 class JobSummaryResponse(JobResponse):
@@ -79,3 +80,9 @@ class JobDetailResponse(JobResponse):
     error_message: str | None = None
     markdown_path: str | None = None
     transcript_text: str | None = None
+
+
+class JobBatchDetailResponse(BaseModel):
+    id: int
+    created_at: str
+    jobs: list[JobDetailResponse]

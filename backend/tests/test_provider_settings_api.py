@@ -111,11 +111,11 @@ def test_upload_uses_updated_default_provider(monkeypatch):
     response = client.post(
         "/api/t/acme/uploads",
         headers=headers,
-        files={"file": ("sample.wav", b"fake-audio", "audio/wav")},
+        files=[("files", ("sample.wav", b"fake-audio", "audio/wav"))],
     )
 
     assert response.status_code == 201
-    assert response.json()["provider_key"] == "assemblyai"
+    assert response.json()[0]["provider_key"] == "assemblyai"
 
 
 def test_assemblyai_requires_server_env_key(monkeypatch):
