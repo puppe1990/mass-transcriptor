@@ -1,14 +1,16 @@
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
 
+import { buildJobListRows, summarizeBatchStatus } from "../lib/jobGroups";
 import type { JobSummary } from "../lib/types";
 import { JobStatusBadge } from "./JobStatusBadge";
 
 export function JobsTable({ jobs }: { jobs: JobSummary[] }) {
   const { t } = useTranslation();
   const { tenantSlug = "" } = useParams();
+  const rows = buildJobListRows(jobs);
 
-  if (jobs.length === 0) {
+  if (rows.length === 0) {
     return (
       <div className="jobs-empty">
         <div className="jobs-empty__icon" aria-hidden="true">
@@ -49,22 +51,55 @@ export function JobsTable({ jobs }: { jobs: JobSummary[] }) {
           </tr>
         </thead>
         <tbody>
-          {jobs.map((job) => (
-            <tr key={job.id}>
-              <td>
-                <Link className="jobs-table__file-link" to={`/t/${tenantSlug}/jobs/${job.id}`}>
-                  {job.original_filename}
-                </Link>
-              </td>
-              <td>
-                <span className="jobs-table__provider">{job.provider_key}</span>
-              </td>
-              <td>
-                <JobStatusBadge status={job.status} />
-              </td>
-              <td className="jobs-table__date">{new Date(job.created_at).toLocaleString()}</td>
-            </tr>
-          ))}
+          {rows.map((row) => {
+            if (row.kind === "batch") {
+              const provider = row.jobs[0]?.provider_key ?? "";
+              return (
+                <tr key={`batch-${row.batchId}`}>
+                  <td>
+                    <Link
+                      className="jobs-table__file-link"
+                      to={`/t/${tenantSlug}/batches/${row.batchId}`}
+                    >
+                      {t("jobs.batchLabel", { count: row.jobs.length })}
+                    </Link>
+                    <p className="jobs-table__batch-files">
+                      {row.jobs.map((job) => job.original_filename).join(" · ")}
+                    </p>
+                  </td>
+                  <td>
+                    <span className="jobs-table__provider">{provider}</span>
+                  </td>
+                  <td>
+                    <JobStatusBadge status={summarizeBatchStatus(row.jobs)} />
+                  </td>
+                  <td className="jobs-table__date">{new Date(row.createdAt).toLocaleString()}</td>
+                </tr>
+              );
+            }
+
+            return (
+              <tr key={row.job.id}>
+                <td>
+                  <Link
+                    className="jobs-table__file-link"
+                    to={`/t/${tenantSlug}/jobs/${row.job.id}`}
+                  >
+                    {row.job.original_filename}
+                  </Link>
+                </td>
+                <td>
+                  <span className="jobs-table__provider">{row.job.provider_key}</span>
+                </td>
+                <td>
+                  <JobStatusBadge status={row.job.status} />
+                </td>
+                <td className="jobs-table__date">
+                  {new Date(row.job.created_at).toLocaleString()}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
