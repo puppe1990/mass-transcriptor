@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.config import Settings
 from app.models import Tenant, TenantProviderSetting
+from app.services.assemblyai_account import fetch_assemblyai_credits, serialize_assemblyai_credits
 
 ALLOWED_WHISPER_LANGUAGES = {"auto", "pt", "en", "es"}
 
@@ -50,7 +51,9 @@ def _assemblyai_env_api_key() -> str | None:
 
 def serialize_provider_settings(session: Session, tenant: Tenant) -> dict:
     whisper_language = resolve_whisper_language(session, tenant.id)
-    assemblyai_configured = _assemblyai_env_api_key() is not None
+    assemblyai_api_key = _assemblyai_env_api_key()
+    assemblyai_configured = assemblyai_api_key is not None
+    assemblyai_credits = serialize_assemblyai_credits(fetch_assemblyai_credits(assemblyai_api_key))
     return {
         "workspace_name": tenant.name,
         "default_provider": tenant.default_provider,
@@ -62,6 +65,7 @@ def serialize_provider_settings(session: Session, tenant: Tenant) -> dict:
                 "has_api_key": assemblyai_configured,
             },
         },
+        "assemblyai_credits": assemblyai_credits,
     }
 
 

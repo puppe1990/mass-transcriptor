@@ -48,11 +48,19 @@ class ProviderStateResponse(BaseModel):
     has_api_key: bool
 
 
+class AssemblyAiCreditsResponse(BaseModel):
+    status: str
+    balance_usd: float | None = None
+    message: str | None = None
+    dashboard_url: str
+
+
 class ProviderSettingsResponse(BaseModel):
     workspace_name: str
     default_provider: str
     whisper_language: str
     providers: dict[str, ProviderStateResponse]
+    assemblyai_credits: AssemblyAiCreditsResponse | None = None
 
 
 class ProviderSettingsUpdateRequest(BaseModel):
